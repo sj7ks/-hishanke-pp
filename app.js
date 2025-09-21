@@ -1,21 +1,94 @@
+const productList = document.getElementById("product-list");
+const searchInput = document.getElementById("search");
+const filterSelect = document.getElementById("filter");
+
+// Load cooldowns from localStorage
 function saveCooldowns(state) {
   localStorage.setItem("cooldowns", JSON.stringify(state));
 }
-
 function loadCooldowns() {
   const saved = localStorage.getItem("cooldowns");
   return saved ? JSON.parse(saved) : {};
 }
-
 let cooldowns = loadCooldowns();
 
-function setCooldown(productId) {
-  const until = Date.now() + 60_000; // 1 min cooldown (example)
+// Cooldown helpers
+function setCooldown(productId, minutes = 10) {
+  const until = Date.now() + minutes * 60_000;
   cooldowns[productId] = until;
   saveCooldowns(cooldowns);
 }
-
 function isOnCooldown(productId) {
   const until = cooldowns[productId] || 0;
   return Date.now() < until;
 }
+
+// Render products
+function renderProducts() {
+  const searchTerm = searchInput.value.toLowerCase();
+  const categoryFilter = filterSelect.value;
+
+  productList.innerHTML = "";
+
+  products
+    .filter(p => (p.name.toLowerCase().includes(searchTerm)) &&
+                 (!categoryFilter || p.category === categoryFilter))
+    .forEach(p => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+
+      card.innerHTML = `
+        <img src="${p.image}" alt="${p.name}">
+        <h3 class="font-semibold text-lg">${p.name}</h3>
+        <p>Price: $${p.price}</p>
+        <p>Stock: ${p.stock}</p>
+        <button class="check-btn">Check</button>
+        <button class="buy-btn">Buy</button>
+      `;
+
+      productList.appendChild(card);
+
+      const checkBtn = card.querySelector(".check-btn");
+      const buyBtn = card.querySelector(".buy-btn");
+
+      // Restore cooldown state
+      if (isOnCooldown(p.id)) {
+        checkBtn.disabled = true;
+        checkBtn.textContent = "Requested (cooldown)";
+      }
+
+      // Check button
+      checkBtn.addEventListener("click", () => {
+        if (isOnCooldown(p.id)) return;
+        alert(`Requested stock check for ${p.name}`);
+        setCooldown(p.id, 10);
+        checkBtn.disabled = true;
+        checkBtn.textContent = "Requested (cooldown)";
+        p.lastChecked = Date.now();
+      });
+
+      // Buy button
+      buyBtn.addEventListener("click", () => {
+        if (!p.lastChecked || Date.now() - p.lastChecked > 7 * 24 * 60 * 60 * 1000) {
+          alert(`Price not updated recently. Please request a check first.`);
+          return;
+        }
+        alert(`Send $${p.price} to mom via Revolut`);
+      });
+    });
+}
+
+// Search/filter
+searchInput.addEventListener("input", renderProducts);
+filterSelect.addEventListener("change", renderProducts);
+
+renderProducts();
+
+// Bug reporting
+const bugForm = document.getElementById("bug-form");
+bugForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const desc = document.getElementById("bug-description").value;
+  alert(`Bug reported: ${desc}`);
+  document.getElementById("bug-description").value = "";
+});
