@@ -1,39 +1,14 @@
-/* --- Global --- */
+/* Body & text */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f6f8fa;
-  color: #333;
 }
 
-/* --- Header --- */
-header h1 {
-  font-size: 2.5rem;
-  color: #1e3a8a; /* deep blue */
-}
-header p {
-  font-size: 1.1rem;
-  color: #555;
-}
-
-/* --- Search / Filter --- */
-#search, #filter {
-  border-radius: 50px;
-  border: 1px solid #ccc;
-  padding: 10px 15px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-#search:focus, #filter:focus {
-  outline: none;
-  border-color: #1e3a8a;
-  box-shadow: 0 0 5px rgba(30,58,138,0.5);
-}
-
-/* --- Product Cards --- */
+/* Product Cards */
 .product-card {
-  background: #fff;
+  background: #ffffff;
   border-radius: 15px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   padding: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .product-card:hover {
@@ -41,43 +16,7 @@ header p {
   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
-/* --- Product Card Elements --- */
-.product-card h3 {
-  font-size: 1.3rem;
-  margin-bottom: 5px;
-  color: #1e3a8a;
-}
-.product-card p {
-  margin: 3px 0;
-}
-.product-card button {
-  border-radius: 50px;
-  padding: 6px 12px;
-  margin-top: 5px;
-  transition: all 0.2s;
-}
-.product-card .check-btn {
-  background-color: #10b981;
-  color: white;
-  border: none;
-}
-.product-card .check-btn:hover:not(:disabled) {
-  background-color: #059669;
-}
-.product-card .buy-btn {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-}
-.product-card .buy-btn:hover:not(:disabled) {
-  background-color: #2563eb;
-}
-.product-card button:disabled {
-  background-color: #ccc !important;
-  cursor: not-allowed;
-}
-
-/* --- Product Images --- */
+/* Product Images */
 .product-card img {
   width: 100%;
   height: 150px;
@@ -86,12 +25,39 @@ header p {
   margin-bottom: 10px;
 }
 
-/* --- Bug Report Form --- */
+/* Buttons */
+.product-card button {
+  border-radius: 50px;
+  padding: 6px 12px;
+  margin-top: 5px;
+  transition: all 0.2s;
+}
+.check-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+}
+.check-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+.buy-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+}
+.buy-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+button:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+}
+
+/* Bug report */
 #bug-form input {
   border-radius: 50px;
   border: 1px solid #ccc;
   padding: 8px 15px;
-  flex-grow: 1;
 }
 #bug-form button {
   border-radius: 50px;
@@ -101,14 +67,4 @@ header p {
 }
 #bug-form button:hover {
   background-color: #b91c1c;
-}
-
-/* --- Responsive tweaks --- */
-@media (max-width: 768px) {
-  .product-card {
-    padding: 10px;
-  }
-  .product-card img {
-    height: 120px;
-  }
 }
