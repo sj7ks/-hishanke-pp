@@ -1,29 +1,31 @@
+// DOM Elements
 const productList = document.getElementById("product-list");
 const searchInput = document.getElementById("search");
 const filterSelect = document.getElementById("filter");
 
-// Load cooldowns from localStorage
-function saveCooldowns(state) {
-  localStorage.setItem("cooldowns", JSON.stringify(state));
-}
-function loadCooldowns() {
-  const saved = localStorage.getItem("cooldowns");
-  return saved ? JSON.parse(saved) : {};
-}
-let cooldowns = loadCooldowns();
+// Load data from localStorage
+let cooldowns = JSON.parse(localStorage.getItem("cooldowns")) || {};
+let quantities = JSON.parse(localStorage.getItem("quantities")) || {};
 
-// Cooldown helpers
+// --- Helper Functions ---
+function saveCooldowns() {
+  localStorage.setItem("cooldowns", JSON.stringify(cooldowns));
+}
+function saveQuantities() {
+  localStorage.setItem("quantities", JSON.stringify(quantities));
+}
+
 function setCooldown(productId, minutes = 10) {
   const until = Date.now() + minutes * 60_000;
   cooldowns[productId] = until;
-  saveCooldowns(cooldowns);
+  saveCooldowns();
 }
 function isOnCooldown(productId) {
   const until = cooldowns[productId] || 0;
   return Date.now() < until;
 }
 
-// Render products
+// --- Render Products ---
 function renderProducts() {
   const searchTerm = searchInput.value.toLowerCase();
   const categoryFilter = filterSelect.value;
@@ -36,12 +38,16 @@ function renderProducts() {
     .forEach(p => {
       const card = document.createElement("div");
       card.className = "product-card";
+      card.id = `product-${p.id}`;
+
+      const qtyValue = quantities[p.id] || 0;
 
       card.innerHTML = `
         <img src="${p.image}" alt="${p.name}">
         <h3 class="font-semibold text-lg">${p.name}</h3>
         <p>Price: $${p.price}</p>
         <p>Stock: ${p.stock}</p>
+        <p>Quantity: <input type="number" min="0" value="${qtyValue}" class="quantity-input w-16 border rounded p-1"></p>
         <button class="check-btn">Check</button>
         <button class="buy-btn">Buy</button>
       `;
@@ -50,12 +56,23 @@ function renderProducts() {
 
       const checkBtn = card.querySelector(".check-btn");
       const buyBtn = card.querySelector(".buy-btn");
+      const qtyInput = card.querySelector(".quantity-input");
 
-      // Restore cooldown state
+      // Restore cooldown
       if (isOnCooldown(p.id)) {
         checkBtn.disabled = true;
         checkBtn.textContent = "Requested (cooldown)";
       }
+
+      // Restore quantity
+      qtyInput.value = quantities[p.id] || 0;
+
+      // Quantity input
+      qtyInput.addEventListener("input", () => {
+        quantities[p.id] = parseInt(qtyInput.value) || 0;
+        saveQuantities();
+        updateTotals();
+      });
 
       // Check button
       checkBtn.addEventListener("click", () => {
@@ -65,33 +82,39 @@ function renderProducts() {
         checkBtn.disabled = true;
         checkBtn.textContent = "Requested (cooldown)";
         p.lastChecked = Date.now();
+        updateTotals();
       });
 
       // Buy button
       buyBtn.addEventListener("click", () => {
         if (!p.lastChecked || Date.now() - p.lastChecked > 7 * 24 * 60 * 60 * 1000) {
-          alert(`Price not updated recently. Please request a check first.`);
+          alert(`Price not updated in last 7 days. Request check first.`);
           return;
         }
-        alert(`Send $${p.price} to mom via Revolut`);
+        const qty = parseInt(qtyInput.value) || 0;
+        if (qty === 0) {
+          alert("Please enter quantity before buying.");
+          return;
+        }
+        if (qty > p.stock) {
+          alert("Quantity exceeds stock available!");
+          return;
+        }
+        alert(`Send $${(p.price * qty).toFixed(2)} to mom via Revolut.`);
+        // Update stock
+        p.stock -= qty;
+        qtyInput.value = 0;
+        quantities[p.id] = 0;
+        saveQuantities();
+        renderProducts();
       });
     });
+
+  attachQuantityListeners();
+  updateTotals();
 }
 
-// Search/filter
-searchInput.addEventListener("input", renderProducts);
-filterSelect.addEventListener("change", renderProducts);
-
-renderProducts();
-
-// Bug reporting
-const bugForm = document.getElementById("bug-form");
-bugForm.addEventListener("submit", e => {
-  e.preventDefault();
-  const desc = document.getElementById("bug-description").value;
-  alert(`Bug reported: ${desc}`);
-  document.getElementById("bug-description").value = "";
-});
+// --- Totals ---
 function updateTotals() {
   const totalsDiv = document.getElementById("totals");
   totalsDiv.innerHTML = "";
@@ -100,13 +123,10 @@ function updateTotals() {
   let totalItems = 0;
 
   products.forEach(p => {
-    const input = document.querySelector(`#product-${p.id} .quantity-input`);
-    if (input) {
-      const qty = parseInt(input.value) || 0;
-      if (qty > 0) {
-        totalCost += qty * parseFloat(p.price);
-        totalItems += qty;
-      }
+    const qty = quantities[p.id] || 0;
+    if (qty > 0) {
+      totalItems += qty;
+      totalCost += qty * parseFloat(p.price);
     }
   });
 
@@ -116,7 +136,7 @@ function updateTotals() {
   `;
 }
 
-// Add event listener to each quantity input
+// Attach quantity listeners (just in case)
 function attachQuantityListeners() {
   products.forEach(p => {
     const input = document.querySelector(`#product-${p.id} .quantity-input`);
@@ -125,16 +145,20 @@ function attachQuantityListeners() {
     }
   });
 }
-const card = document.createElement("div");
-card.className = "product-card";
-card.id = `product-${p.id}`; // unique ID
 
-card.innerHTML = `
-  <img src="${p.image}" alt="${p.name}">
-  <h3 class="font-semibold text-lg">${p.name}</h3>
-  <p>Price: $${p.price}</p>
-  <p>Stock: ${p.stock}</p>
-  <p>Quantity: <input type="number" min="0" value="0" class="quantity-input w-16 border rounded p-1"></p>
-  <button class="check-btn">Check</button>
-  <button class="buy-btn">Buy</button>
-`;
+// --- Search / Filter ---
+searchInput.addEventListener("input", renderProducts);
+filterSelect.addEventListener("change", renderProducts);
+
+// --- Initial Render ---
+renderProducts();
+
+// --- Bug Reporting ---
+const bugForm = document.getElementById("bug-form");
+bugForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const desc = document.getElementById("bug-description").value;
+  if (!desc) return;
+  alert(`Bug reported: ${desc}`);
+  document.getElementById("bug-description").value = "";
+});
