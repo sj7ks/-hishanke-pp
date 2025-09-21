@@ -125,3 +125,16 @@ function attachQuantityListeners() {
     }
   });
 }
+const card = document.createElement("div");
+card.className = "product-card";
+card.id = `product-${p.id}`; // unique ID
+
+card.innerHTML = `
+  <img src="${p.image}" alt="${p.name}">
+  <h3 class="font-semibold text-lg">${p.name}</h3>
+  <p>Price: $${p.price}</p>
+  <p>Stock: ${p.stock}</p>
+  <p>Quantity: <input type="number" min="0" value="0" class="quantity-input w-16 border rounded p-1"></p>
+  <button class="check-btn">Check</button>
+  <button class="buy-btn">Buy</button>
+`;
