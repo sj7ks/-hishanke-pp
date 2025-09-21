@@ -1,26 +1,114 @@
+/* --- Global --- */
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f6f8fa;
+  color: #333;
 }
-h1, h2 {
-  color: #2c3e50;
+
+/* --- Header --- */
+header h1 {
+  font-size: 2.5rem;
+  color: #1e3a8a; /* deep blue */
 }
-#product-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+header p {
+  font-size: 1.1rem;
+  color: #555;
 }
-.product-card {
+
+/* --- Search / Filter --- */
+#search, #filter {
+  border-radius: 50px;
   border: 1px solid #ccc;
-  padding: 10px;
-  width: 200px;
+  padding: 10px 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-button {
+#search:focus, #filter:focus {
+  outline: none;
+  border-color: #1e3a8a;
+  box-shadow: 0 0 5px rgba(30,58,138,0.5);
+}
+
+/* --- Product Cards --- */
+.product-card {
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  padding: 15px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* --- Product Card Elements --- */
+.product-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 5px;
+  color: #1e3a8a;
+}
+.product-card p {
+  margin: 3px 0;
+}
+.product-card button {
+  border-radius: 50px;
+  padding: 6px 12px;
   margin-top: 5px;
-  padding: 5px 10px;
-  cursor: pointer;
+  transition: all 0.2s;
 }
-button:disabled {
-  background-color: #ccc;
+.product-card .check-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+}
+.product-card .check-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+.product-card .buy-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+}
+.product-card .buy-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+.product-card button:disabled {
+  background-color: #ccc !important;
   cursor: not-allowed;
+}
+
+/* --- Product Images --- */
+.product-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+/* --- Bug Report Form --- */
+#bug-form input {
+  border-radius: 50px;
+  border: 1px solid #ccc;
+  padding: 8px 15px;
+  flex-grow: 1;
+}
+#bug-form button {
+  border-radius: 50px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+}
+#bug-form button:hover {
+  background-color: #b91c1c;
+}
+
+/* --- Responsive tweaks --- */
+@media (max-width: 768px) {
+  .product-card {
+    padding: 10px;
+  }
+  .product-card img {
+    height: 120px;
+  }
 }
