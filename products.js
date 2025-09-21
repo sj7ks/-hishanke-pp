@@ -1,31 +1,52 @@
-const products = [];
-
-const categories = ["fruit", "veg", "dairy"];
-const sampleNames = [
-  "Apple", "Banana", "Orange", "Tomato", "Potato", "Carrot", "Milk", "Cheese",
-  "Yogurt", "Strawberry", "Blueberry", "Lettuce", "Cucumber", "Spinach", "Butter",
-  "Eggs", "Chicken", "Beef", "Pork", "Salmon", "Bread", "Rice", "Pasta", "Tomato Sauce",
-  "Cabbage", "Onion", "Garlic", "Peach", "Plum", "Grapes", "Watermelon", "Peas",
-  "Corn", "Bell Pepper", "Mushroom", "Cottage Cheese", "Cream", "Sour Cream",
-  "Milkshake", "Yogurt Drink", "Lemon", "Lime", "Kiwi", "Avocado", "Broccoli",
-  "Cauliflower", "Spinach", "Zucchini", "Eggplant", "Pumpkin"
+const products = [
+  { id: 1, name: "Apple", category: "fruit", price: 1.50, stock: 50, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/1/200/150" },
+  { id: 2, name: "Banana", category: "fruit", price: 1.20, stock: 30, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/2/200/150" },
+  { id: 3, name: "Orange", category: "fruit", price: 2.00, stock: 40, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/3/200/150" },
+  { id: 4, name: "Tomato", category: "veg", price: 2.50, stock: 60, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/4/200/150" },
+  { id: 5, name: "Potato", category: "veg", price: 1.00, stock: 100, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/5/200/150" },
+  { id: 6, name: "Carrot", category: "veg", price: 1.30, stock: 80, lastChecked: Date.now() - 4*24*60*60*1000, image: "https://picsum.photos/seed/6/200/150" },
+  { id: 7, name: "Milk", category: "dairy", price: 2.20, stock: 50, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/7/200/150" },
+  { id: 8, name: "Cheese", category: "dairy", price: 3.50, stock: 35, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/8/200/150" },
+  { id: 9, name: "Yogurt", category: "dairy", price: 1.80, stock: 45, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/9/200/150" },
+  { id: 10, name: "Strawberry", category: "fruit", price: 4.00, stock: 25, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/10/200/150" },
+  { id: 11, name: "Blueberry", category: "fruit", price: 5.00, stock: 20, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/11/200/150" },
+  { id: 12, name: "Lettuce", category: "veg", price: 1.70, stock: 40, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/12/200/150" },
+  { id: 13, name: "Cucumber", category: "veg", price: 1.50, stock: 50, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/13/200/150" },
+  { id: 14, name: "Spinach", category: "veg", price: 2.20, stock: 35, lastChecked: Date.now() - 4*24*60*60*1000, image: "https://picsum.photos/seed/14/200/150" },
+  { id: 15, name: "Butter", category: "dairy", price: 3.00, stock: 40, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/15/200/150" },
+  { id: 16, name: "Eggs", category: "dairy", price: 2.50, stock: 60, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/16/200/150" },
+  { id: 17, name: "Chicken", category: "veg", price: 5.50, stock: 30, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/17/200/150" },
+  { id: 18, name: "Beef", category: "veg", price: 6.00, stock: 25, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/18/200/150" },
+  { id: 19, name: "Pork", category: "veg", price: 4.50, stock: 40, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/19/200/150" },
+  { id: 20, name: "Salmon", category: "veg", price: 8.00, stock: 15, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/20/200/150" },
+  { id: 21, name: "Bread", category: "dairy", price: 1.80, stock: 50, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/21/200/150" },
+  { id: 22, name: "Rice", category: "veg", price: 2.00, stock: 80, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/22/200/150" },
+  { id: 23, name: "Pasta", category: "veg", price: 1.50, stock: 70, lastChecked: Date.now() - 4*24*60*60*1000, image: "https://picsum.photos/seed/23/200/150" },
+  { id: 24, name: "Tomato Sauce", category: "veg", price: 2.50, stock: 40, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/24/200/150" },
+  { id: 25, name: "Cabbage", category: "veg", price: 1.20, stock: 60, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/25/200/150" },
+  { id: 26, name: "Onion", category: "veg", price: 1.00, stock: 80, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/26/200/150" },
+  { id: 27, name: "Garlic", category: "veg", price: 1.50, stock: 40, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/27/200/150" },
+  { id: 28, name: "Peach", category: "fruit", price: 2.00, stock: 35, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/28/200/150" },
+  { id: 29, name: "Plum", category: "fruit", price: 1.80, stock: 30, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/29/200/150" },
+  { id: 30, name: "Grapes", category: "fruit", price: 3.50, stock: 25, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/30/200/150" },
+  { id: 31, name: "Watermelon", category: "fruit", price: 4.00, stock: 15, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/31/200/150" },
+  { id: 32, name: "Peas", category: "veg", price: 1.50, stock: 50, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/32/200/150" },
+  { id: 33, name: "Corn", category: "veg", price: 1.20, stock: 60, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/33/200/150" },
+  { id: 34, name: "Bell Pepper", category: "veg", price: 2.00, stock: 40, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/34/200/150" },
+  { id: 35, name: "Mushroom", category: "veg", price: 2.50, stock: 30, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/35/200/150" },
+  { id: 36, name: "Cottage Cheese", category: "dairy", price: 3.00, stock: 25, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/36/200/150" },
+  { id: 37, name: "Cream", category: "dairy", price: 2.50, stock: 30, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/37/200/150" },
+  { id: 38, name: "Sour Cream", category: "dairy", price: 2.00, stock: 40, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/38/200/150" },
+  { id: 39, name: "Milkshake", category: "dairy", price: 3.50, stock: 20, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/39/200/150" },
+  { id: 40, name: "Yogurt Drink", category: "dairy", price: 2.50, stock: 25, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/40/200/150" },
+  { id: 41, name: "Lemon", category: "fruit", price: 1.50, stock: 30, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/41/200/150" },
+  { id: 42, name: "Lime", category: "fruit", price: 1.20, stock: 25, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/42/200/150" },
+  { id: 43, name: "Kiwi", category: "fruit", price: 2.50, stock: 20, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/43/200/150" },
+  { id: 44, name: "Avocado", category: "fruit", price: 3.00, stock: 15, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/44/200/150" },
+  { id: 45, name: "Broccoli", category: "veg", price: 2.20, stock: 35, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/45/200/150" },
+  { id: 46, name: "Cauliflower", category: "veg", price: 2.50, stock: 30, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/46/200/150" },
+  { id: 47, name: "Spinach", category: "veg", price: 1.80, stock: 40, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/47/200/150" },
+  { id: 48, name: "Zucchini", category: "veg", price: 2.00, stock: 35, lastChecked: Date.now() - 2*24*60*60*1000, image: "https://picsum.photos/seed/48/200/150" },
+  { id: 49, name: "Eggplant", category: "veg", price: 2.20, stock: 30, lastChecked: Date.now() - 1*24*60*60*1000, image: "https://picsum.photos/seed/49/200/150" },
+  { id: 50, name: "Pumpkin", category: "veg", price: 3.00, stock: 25, lastChecked: Date.now() - 3*24*60*60*1000, image: "https://picsum.photos/seed/50/200/150" }
 ];
-
-for (let i = 0; i < 50; i++) {
-  const category = categories[Math.floor(Math.random() * categories.length)];
-  const name = sampleNames[i % sampleNames.length];
-  const price = (Math.random() * 10 + 1).toFixed(2);
-  const stock = Math.floor(Math.random() * 100 + 1);
-  const lastChecked = Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000); // random last 7 days
-  const image = `https://picsum.photos/seed/${i}/200/150`;
-
-  products.push({
-    id: i + 1,
-    name,
-    category,
-    price,
-    stock,
-    lastChecked,
-    image
-  });
-}
