@@ -92,3 +92,36 @@ bugForm.addEventListener("submit", e => {
   alert(`Bug reported: ${desc}`);
   document.getElementById("bug-description").value = "";
 });
+function updateTotals() {
+  const totalsDiv = document.getElementById("totals");
+  totalsDiv.innerHTML = "";
+
+  let totalCost = 0;
+  let totalItems = 0;
+
+  products.forEach(p => {
+    const input = document.querySelector(`#product-${p.id} .quantity-input`);
+    if (input) {
+      const qty = parseInt(input.value) || 0;
+      if (qty > 0) {
+        totalCost += qty * parseFloat(p.price);
+        totalItems += qty;
+      }
+    }
+  });
+
+  totalsDiv.innerHTML = `
+    <p>Total items: ${totalItems}</p>
+    <p>Total cost: $${totalCost.toFixed(2)}</p>
+  `;
+}
+
+// Add event listener to each quantity input
+function attachQuantityListeners() {
+  products.forEach(p => {
+    const input = document.querySelector(`#product-${p.id} .quantity-input`);
+    if (input) {
+      input.addEventListener("input", updateTotals);
+    }
+  });
+}
