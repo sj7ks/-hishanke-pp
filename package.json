@@ -1,14 +1,20 @@
 {
-  "name": "uhishanke-pro",
+  "name": "uhishanke-app",
   "version": "1.0.0",
-  "description": "Professional group ordering app for your mom",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "author": "Your Name",
+  "description": "Ühishanke Shopping App - Professional, Multi-user, Notification Ready",
+  "main": "app.js",
+  "author": "Christofer Robin Münz",
   "license": "MIT",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
