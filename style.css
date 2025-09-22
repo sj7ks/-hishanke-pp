@@ -6,7 +6,10 @@
     font-family: 'Inter', sans-serif;
 }
 
-body {
+html, body {
+    overflow-x: hidden; /* prevent horizontal scroll */
+    margin: 0;
+    padding: 0;
     background: #f0f4f8;
     color: #1f2937;
     line-height: 1.6;
@@ -109,7 +112,8 @@ header {
     font-size: 1.4rem;
     margin: 0.5rem 0;
     text-align: center;
-    color: #111827;
+    color: #10b981; /* green for product names */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .product-card p {
@@ -184,24 +188,6 @@ header {
     opacity: 0.7;
 }
 
-/* Stock Bars */
-.stock-bar-container {
-    width: 100%;
-    background: #e5e7eb;
-    height: 12px;
-    border-radius: 6px;
-    margin: 4px 0;
-    overflow: hidden;
-}
-
-.stock-bar {
-    height: 12px;
-    border-radius: 6px;
-    background: #10b981;
-    width: 0%;
-    transition: width 0.3s ease, background 0.3s ease;
-}
-
 /* Notification */
 .notification {
     position: fixed;
@@ -241,3 +227,5 @@ footer {
     .product-card img { width:120px; height:120px; }
     .quantity-input { width:50px; }
 }
+
+/* Smooth zoom reset handled in JS */
