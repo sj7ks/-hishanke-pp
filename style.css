@@ -1,233 +1,243 @@
-/* -------------------
-   Global Styles
-------------------- */
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f4f5f7;
+/* Global */
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    color: #1f2937;
-}
-
-h1, h2, h3, h4 {
     font-family: 'Inter', sans-serif;
-    color: #111827;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
+body {
+    background: #f0f4f8;
+    color: #1f2937;
+    line-height: 1.6;
 }
 
-/* -------------------
-   Header
-------------------- */
+/* Header */
 header {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: #fff;
     text-align: center;
-    margin-bottom: 40px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    padding: 1.5rem 0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    letter-spacing: 1px;
 }
 
-header h1 {
-    font-size: 3rem;
-    color: #4f46e5;
+/* Top Bar */
+.top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-width: 1500px;
+    margin: 1.5rem auto;
+    padding: 0 2rem;
+    gap: 1rem;
 }
 
-header p {
-    font-size: 1.2rem;
-    color: #6b7280;
+.top-bar input[type="text"] {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    transition: all 0.2s ease;
 }
 
-/* -------------------
-   Search & Filter
-------------------- */
-input#search, select#filter {
-    padding: 12px 20px;
-    border-radius: 9999px;
-    border: 1px solid #d1d5db;
+.top-bar input[type="text"]:focus {
     outline: none;
-    transition: all 0.2s ease-in-out;
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59,130,246,0.5);
 }
 
-input#search:focus, select#filter:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+.top-bar select {
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-/* -------------------
-   Product Grid
-------------------- */
-#product-list {
+.top-bar select:hover {
+    border-color: #3b82f6;
+}
+
+/* Products Container */
+.products-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1500px;
+    margin: auto;
 }
 
-/* -------------------
-   Product Card
-------------------- */
+/* Product Card */
 .product-card {
-    background-color: #ffffff;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    padding: 15px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: #fff;
+    border-radius: 20px;
+    padding: 1.5rem 1.2rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
 .product-card img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 10px;
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.1);
 }
 
 .product-card h3 {
-    font-size: 1.2rem;
-    margin: 5px 0;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin: 0.5rem 0;
+    text-align: center;
+    color: #111827;
 }
 
 .product-card p {
-    margin: 4px 0;
+    margin: 0.2rem 0;
     font-size: 0.95rem;
+    text-align: center;
     color: #374151;
 }
 
-/* -------------------
-   Quantity Input
-------------------- */
+/* Quantity Controls */
+.quantity-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
 .quantity-input {
     width: 60px;
+    padding: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.95rem;
     text-align: center;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 5px;
-    margin-top: 5px;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .quantity-input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 2px rgba(79,70,229,0.2);
+    outline: none;
+    border-color: #3b82f6;
 }
 
-/* -------------------
-   Buttons
-------------------- */
-button {
-    cursor: pointer;
+/* Buttons */
+.product-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+}
+
+.check-btn, .buy-btn {
+    padding: 0.55rem 1rem;
     border: none;
-    padding: 10px 15px;
-    margin-top: 8px;
-    border-radius: 8px;
+    border-radius: 12px;
     font-weight: 600;
-    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 75px;
+    font-size: 0.95rem;
 }
 
 .check-btn {
-    background-color: #fbbf24;
-    color: #1f2937;
+    background: #3b82f6;
+    color: #fff;
 }
 
 .check-btn:hover {
-    background-color: #f59e0b;
-}
-
-.check-btn:disabled {
-    background-color: #f3f4f6;
-    color: #9ca3af;
-    cursor: not-allowed;
+    background: #2563eb;
 }
 
 .buy-btn {
-    background-color: #4f46e5;
-    color: #ffffff;
+    background: #10b981;
+    color: #fff;
 }
 
 .buy-btn:hover {
-    background-color: #4338ca;
+    background: #059669;
 }
 
-.buy-btn:disabled {
-    background-color: #e5e7eb;
-    color: #9ca3af;
+.disabled {
+    background: #94a3b8 !important;
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
-/* -------------------
-   Totals Section
-------------------- */
-#totals {
-    background-color: #ffffff;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    padding: 20px;
-    font-size: 1.1rem;
+/* Stock Bars */
+.stock-bar-container {
+    width: 100%;
+    background: #e5e7eb;
+    height: 12px;
+    border-radius: 6px;
+    margin: 4px 0;
+    overflow: hidden;
 }
 
-/* -------------------
-   Bug Report Form
-------------------- */
-#bug-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.stock-bar {
+    height: 12px;
+    border-radius: 6px;
+    background: #10b981;
+    width: 0%;
+    transition: width 0.3s ease, background 0.3s ease;
 }
 
-#bug-form input[type="text"] {
-    flex-grow: 1;
-    padding: 12px;
-    border-radius: 9999px;
-    border: 1px solid #d1d5db;
-    transition: all 0.2s;
-}
-
-#bug-form input[type="text"]:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 2px rgba(239,68,68,0.2);
-}
-
-#bug-form button {
-    background-color: #ef4444;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 9999px;
+/* Notification */
+.notification {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    display: none;
+    animation: fadein 0.5s;
     font-weight: 600;
+    z-index: 999;
 }
 
-#bug-form button:hover {
-    background-color: #dc2626;
+@keyframes fadein {
+    from {opacity:0; transform: translateY(-10px);}
+    to {opacity:1; transform: translateY(0);}
 }
 
-/* -------------------
-   Footer
-------------------- */
+/* Footer */
 footer {
-    margin-top: 50px;
     text-align: center;
-    font-size: 0.85rem;
+    padding: 1.5rem;
+    font-size: 0.9rem;
     color: #6b7280;
+    margin-top: 3rem;
 }
 
-/* -------------------
-   Responsive adjustments
-------------------- */
-@media (max-width: 768px) {
-    .product-card img {
-        height: 130px;
+/* Responsive */
+@media (max-width: 768px){
+    .top-bar {
+        flex-direction: column;
+        gap: 0.8rem;
     }
-}
-
-@media (max-width: 480px) {
-    .product-card img {
-        height: 120px;
-    }
+    .product-card img { width:120px; height:120px; }
+    .quantity-input { width:50px; }
 }
