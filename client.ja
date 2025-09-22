@@ -1,0 +1,234 @@
+// client.js - Hyper Shop Frontend Controller
+
+document.addEventListener("DOMContentLoaded", () => {
+  const API = window.location.origin;
+
+  // Elements
+  const loginBtn = document.getElementById("login-btn");
+  const authModal = document.getElementById("auth-modal");
+  const authClose = document.getElementById("auth-close");
+  const authSubmit = document.getElementById("auth-submit");
+  const authTitle = document.getElementById("auth-title");
+  const toggleAuth = document.getElementById("toggle-auth");
+  const authEmail = document.getElementById("auth-email");
+  const authPassword = document.getElementById("auth-password");
+
+  const cartIcon = document.getElementById("cart-icon");
+  const cartDropdown = document.getElementById("cart-dropdown");
+  const cartItems = document.getElementById("cart-items");
+  const cartTotal = document.getElementById("cart-total");
+
+  const productsContainer = document.getElementById("products-container");
+  const favoritesCarousel = document.getElementById("favorites-carousel");
+  const mostBoughtCarousel = document.getElementById("most-bought-carousel");
+
+  const searchInput = document.getElementById("search");
+  const categoryFilter = document.getElementById("category-filter");
+
+  const bugReport = document.getElementById("bug-report");
+  const submitBug = document.getElementById("submit-bug");
+
+  const notification = document.getElementById("notification");
+
+  // State
+  let products = [];
+  let cart = [];
+  let favorites = [];
+  let isRegistering = false;
+  let user = null;
+
+  // -------------------- AUTH --------------------
+  loginBtn.addEventListener("click", () => {
+    authModal.classList.remove("hidden");
+  });
+
+  authClose.addEventListener("click", () => {
+    authModal.classList.add("hidden");
+  });
+
+  toggleAuth.addEventListener("click", () => {
+    isRegistering = !isRegistering;
+    authTitle.textContent = isRegistering ? "Register" : "Login";
+    authSubmit.textContent = isRegistering ? "Register" : "Login";
+    toggleAuth.innerHTML = isRegistering
+      ? 'Already have an account? <span class="link">Login here</span>'
+      : 'No account? <span class="link">Register here</span>';
+  });
+
+  authSubmit.addEventListener("click", async () => {
+    const email = authEmail.value.trim();
+    const password = authPassword.value.trim();
+
+    if (!email || !password) return notify("⚠️ Enter email and password");
+
+    try {
+      const res = await fetch(`${API}/auth/${isRegistering ? "register" : "login"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      user = data.user;
+      authModal.classList.add("hidden");
+      loginBtn.textContent = `👋 ${user.email}`;
+      notify(`✅ ${isRegistering ? "Registered" : "Logged in"} successfully!`);
+    } catch (err) {
+      notify("❌ " + err.message);
+    }
+  });
+
+  // -------------------- CART --------------------
+  cartIcon.addEventListener("click", () => {
+    cartDropdown.classList.toggle("hidden");
+    renderCart();
+  });
+
+  function addToCart(product, qty = 1) {
+    const existing = cart.find((item) => item.id === product.id);
+    if (existing) existing.quantity += qty;
+    else cart.push({ ...product, quantity: qty });
+    renderCart();
+    notify(`🛒 Added ${qty} x ${product.name}`);
+  }
+
+  function renderCart() {
+    cartItems.innerHTML = "";
+    let total = 0;
+
+    cart.forEach((item) => {
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <p>${item.name} x${item.quantity}</p>
+        <p>$${(item.price * item.quantity).toFixed(2)}</p>
+      `;
+      cartItems.appendChild(div);
+      total += item.price * item.quantity;
+    });
+
+    cartTotal.textContent = `Total: $${total.toFixed(2)}`;
+  }
+
+  // -------------------- PRODUCTS --------------------
+  async function loadProducts() {
+    try {
+      const res = await fetch(`${API}/products`);
+      products = await res.json();
+      renderProducts(products);
+      renderCarousels();
+    } catch (err) {
+      notify("❌ Failed to load products");
+    }
+  }
+
+  function renderProducts(list) {
+    productsContainer.innerHTML = "";
+    list.forEach((p) => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+      card.innerHTML = `
+        <img src="${p.image}" alt="${p.name}">
+        <h3>${p.name}</h3>
+        <p>$${p.price.toFixed(2)}</p>
+        <p>${p.stock > 0 ? `Stock: ${p.stock}` : "<span style='color:red'>Out of stock</span>"}</p>
+        <div class="product-buttons">
+          <button class="check-btn">Check</button>
+          <button class="buy-btn">Buy</button>
+          <button class="fav-btn">${favorites.includes(p.id) ? "💔" : "❤️"}</button>
+        </div>
+      `;
+
+      card.querySelector(".buy-btn").addEventListener("click", () => addToCart(p));
+      card.querySelector(".fav-btn").addEventListener("click", () => toggleFavorite(p));
+
+      productsContainer.appendChild(card);
+    });
+  }
+
+  // -------------------- FAVORITES --------------------
+  function toggleFavorite(product) {
+    if (favorites.includes(product.id)) {
+      favorites = favorites.filter((id) => id !== product.id);
+      notify(`💔 Removed ${product.name} from favorites`);
+    } else {
+      favorites.push(product.id);
+      notify(`❤️ Added ${product.name} to favorites`);
+    }
+    renderProducts(products);
+    renderCarousels();
+  }
+
+  function renderCarousels() {
+    // Favorites
+    favoritesCarousel.innerHTML = "";
+    favorites
+      .map((id) => products.find((p) => p.id === id))
+      .forEach((p) => {
+        if (!p) return;
+        const div = document.createElement("div");
+        div.className = "carousel-item";
+        div.innerHTML = `<img src="${p.image}" alt="${p.name}"><p>${p.name}</p>`;
+        favoritesCarousel.appendChild(div);
+      });
+
+    // Most Bought
+    mostBoughtCarousel.innerHTML = "";
+    products
+      .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
+      .slice(0, 10)
+      .forEach((p) => {
+        const div = document.createElement("div");
+        div.className = "carousel-item";
+        div.innerHTML = `<img src="${p.image}" alt="${p.name}"><p>${p.name}</p>`;
+        mostBoughtCarousel.appendChild(div);
+      });
+  }
+
+  // -------------------- SEARCH & FILTER --------------------
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    const filtered = products.filter((p) =>
+      p.name.toLowerCase().includes(query)
+    );
+    renderProducts(filtered);
+  });
+
+  categoryFilter.addEventListener("change", () => {
+    const cat = categoryFilter.value;
+    if (cat === "all") return renderProducts(products);
+    renderProducts(products.filter((p) => p.category === cat));
+  });
+
+  // -------------------- BUG REPORT --------------------
+  submitBug.addEventListener("click", async () => {
+    const text = bugReport.value.trim();
+    if (!text) return notify("⚠️ Enter bug description");
+
+    try {
+      const res = await fetch(`${API}/bug-report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, user: user?.email || "guest" }),
+      });
+
+      if (!res.ok) throw new Error("Failed to send bug report");
+      bugReport.value = "";
+      notify("🐞 Bug report sent successfully!");
+    } catch (err) {
+      notify("❌ Failed to send bug report");
+    }
+  });
+
+  // -------------------- NOTIFICATIONS --------------------
+  function notify(msg) {
+    notification.textContent = msg;
+    notification.classList.remove("hidden");
+    setTimeout(() => notification.classList.add("hidden"), 2500);
+  }
+
+  // -------------------- INIT --------------------
+  loadProducts();
+});
