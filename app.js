@@ -1,192 +1,186 @@
-// app.js - Ultimate Shop Backend v2 (God Level)
+// app.js - Ühishanke Ultimate God-Level Backend
 require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const bodyParser = require('body-parser');
 const axios = require('axios');
-const crypto = require('crypto');
-const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Load products
-let products = require('./products.js');
+let products = require('./products.js'); // Must be array with 50+ products
 
-// Users database (simple JSON for demo)
-let users = {}; // { email: { passwordHash, cart: [], favorites: [], lastActions: {} } }
+// Users & sessions
+const userSessions = {}; // { userId: { cart: [], favorites: [], lastActions: {} } }
 
 // Middleware
 app.use(express.static(__dirname));
 app.use(bodyParser.json());
-app.use(cookieParser());
 
-// Logger
-function log(msg) {
-  console.log(`[${new Date().toLocaleTimeString()}] ${msg}`);
+// Logger helper
+function log(msg, type = 'info'){
+  const colors = { info: '\x1b[36m', warn: '\x1b[33m', error: '\x1b[31m', reset: '\x1b[0m' };
+  console.log(`${colors[type] || colors.info}[${new Date().toLocaleTimeString()}] ${msg}${colors.reset}`);
 }
-app.use((req, res, next) => { log(`${req.method} ${req.url}`); next(); });
 
-// Utils
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+// Session utils
+function getSession(userId){
+  if(!userSessions[userId]) userSessions[userId] = { cart: [], favorites: [], lastActions: {} };
+  return userSessions[userId];
 }
-function generateSessionId() {
-  return crypto.randomBytes(16).toString('hex');
+function canAct(userId, actionKey, cooldownMs){
+  const session = getSession(userId);
+  return (Date.now() - (session.lastActions[actionKey] || 0)) > cooldownMs;
 }
-function getUserBySession(sessionId) {
-  for (const email in users) {
-    if (users[email].sessionId === sessionId) return users[email];
-  }
-  return null;
-}
-function canAct(user, key, cooldown) {
-  const last = user.lastActions[key] || 0;
-  return (Date.now() - last) > cooldown;
-}
-function updateTimestamp(user, key) {
-  user.lastActions[key] = Date.now();
+function updateAction(userId, actionKey){
+  const session = getSession(userId);
+  session.lastActions[actionKey] = Date.now();
 }
 
 // Telegram notifier
-async function notifyTelegram(message) {
-  try {
+async function notifyTelegram(message){
+  if(!process.env.TELEGRAM_TOKEN || !process.env.MOM_CHAT_ID) return;
+  try{
     await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
-      chat_id: process.env.TELEGRAM_CHAT_ID,
+      chat_id: process.env.MOM_CHAT_ID,
       text: message
     });
-  } catch (err) {
-    console.error("Telegram notify failed:", err.message);
+  } catch(e){
+    log(`Telegram error: ${e.message}`, 'warn');
   }
 }
 
-// --- AUTHENTICATION --- //
-app.post('/register', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
-  if (users[email]) return res.status(400).json({ error: "User exists" });
+// API Endpoints
 
-  const passwordHash = hashPassword(password);
-  const sessionId = generateSessionId();
-  users[email] = { passwordHash, cart: [], favorites: [], lastActions: {}, sessionId };
+// Check product
+app.post('/check-product', async (req,res)=>{
+  try{
+    const { productId, userId } = req.body;
+    const product = products.find(p=>p.id===productId);
+    if(!product) return res.status(404).json({error:"Product not found"});
 
-  res.cookie('sessionId', sessionId, { maxAge: 7*24*60*60*1000, httpOnly: true });
-  res.json({ ok: true, message: "Registered & logged in!" });
+    if(!canAct(userId, `check-${productId}`, 120000)) 
+      return res.status(429).json({error:"Cooldown: wait before checking again"});
+
+    // simulate stock fluctuation
+    product.stock = Math.max(product.stock + Math.floor(Math.random()*3),0);
+    product.lastChecked = new Date().toLocaleString();
+
+    updateAction(userId, `check-${productId}`);
+    await notifyTelegram(`User ${userId} checked "${product.name}" stock.`);
+    log(`User ${userId} checked ${product.name}`);
+
+    res.json({ok:true, product});
+  } catch(e){
+    log(`Check error: ${e.message}`, 'error');
+    res.status(500).json({error:e.message});
+  }
 });
 
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = users[email];
-  if (!user || user.passwordHash !== hashPassword(password)) return res.status(401).json({ error: "Invalid credentials" });
+// Buy product
+app.post('/buy-product', async (req,res)=>{
+  try{
+    const { productId, quantity, userId } = req.body;
+    const product = products.find(p=>p.id===productId);
+    if(!product) return res.status(404).json({error:"Product not found"});
+    if(quantity<=0 || quantity>product.stock) return res.status(400).json({error:"Invalid quantity"});
 
-  const sessionId = generateSessionId();
-  user.sessionId = sessionId;
-  res.cookie('sessionId', sessionId, { maxAge: 7*24*60*60*1000, httpOnly: true });
-  res.json({ ok: true, message: "Logged in!" });
-});
+    if(!canAct(userId, `buy-${productId}`, 5000))
+      return res.status(429).json({error:"Cooldown: wait before buying again"});
 
-app.post('/logout', (req, res) => {
-  const sessionId = req.cookies.sessionId;
-  const user = getUserBySession(sessionId);
-  if (user) delete user.sessionId;
-  res.clearCookie('sessionId');
-  res.json({ ok: true, message: "Logged out" });
-});
+    product.stock -= quantity;
+    product.soldCount = (product.soldCount||0) + quantity;
 
-// --- PRODUCTS --- //
-app.get('/products', (req, res) => {
-  const sessionId = req.cookies.sessionId;
-  const user = getUserBySession(sessionId);
+    const session = getSession(userId);
+    const existing = session.cart.find(c=>c.productId===productId);
+    if(existing) existing.quantity += quantity;
+    else session.cart.push({ productId, quantity });
 
-  // Favorites first
-  const favorites = user ? user.favorites.map(id => products.find(p => p.id === id)).filter(Boolean) : [];
-  // Top 10 most bought
-  const top10 = [...products].sort((a,b)=> (b.soldCount||0) - (a.soldCount||0)).slice(0,10).filter(p => !favorites.includes(p));
-  // Remaining sorted by popularity
-  const remaining = products.filter(p => !favorites.includes(p) && !top10.includes(p))
-                            .sort((a,b)=> (b.soldCount||0) - (a.soldCount||0));
-  const finalList = [...favorites, ...top10, ...remaining];
-  res.json(finalList);
-});
+    updateAction(userId, `buy-${productId}`);
+    await notifyTelegram(`User ${userId} bought ${quantity} x "${product.name}"`);
+    log(`User ${userId} bought ${quantity} x ${product.name}`);
 
-app.post('/check-product', async (req,res) => {
-  const { productId } = req.body;
-  const sessionId = req.cookies.sessionId;
-  const user = getUserBySession(sessionId);
-  if (!user) return res.status(401).json({ error: "Login required" });
-
-  const product = products.find(p=>p.id===productId);
-  if (!product) return res.status(404).json({ error: "Product not found" });
-
-  if (!canAct(user, `check-${productId}`, 120000)) return res.status(429).json({ error: "Cooldown active" });
-
-  product.stock = Math.max(product.stock + Math.floor(Math.random()*3),0);
-  updateTimestamp(user, `check-${productId}`);
-  await notifyTelegram(`User checked "${product.name}" stock`);
-
-  res.json({ ok: true, product });
-});
-
-app.post('/buy-product', async (req,res) => {
-  const { productId, quantity } = req.body;
-  const sessionId = req.cookies.sessionId;
-  const user = getUserBySession(sessionId);
-  if (!user) return res.status(401).json({ error: "Login required" });
-
-  const product = products.find(p=>p.id===productId);
-  if (!product) return res.status(404).json({ error: "Product not found" });
-  if (quantity <=0 || quantity > product.stock) return res.status(400).json({ error: "Invalid quantity" });
-  if (!canAct(user, `buy-${productId}`, 5000)) return res.status(429).json({ error: "Cooldown active" });
-
-  product.stock -= quantity;
-  product.soldCount = (product.soldCount||0)+quantity;
-
-  const existing = user.cart.find(i=>i.productId===productId);
-  if (existing) existing.quantity += quantity;
-  else user.cart.push({ productId, quantity });
-
-  updateTimestamp(user, `buy-${productId}`);
-  await notifyTelegram(`User bought ${quantity} x "${product.name}"`);
-
-  res.json({ ok: true, cart: user.cart, product });
-});
-
-// Favorites toggle
-app.post('/favorite-product', (req,res) => {
-  const { productId } = req.body;
-  const sessionId = req.cookies.sessionId;
-  const user = getUserBySession(sessionId);
-  if (!user) return res.status(401).json({ error: "Login required" });
-
-  if (user.favorites.includes(productId)) user.favorites = user.favorites.filter(id => id!==productId);
-  else user.favorites.push(productId);
-
-  res.json({ ok: true, favorites: user.favorites });
+    res.json({ok:true, product, cart: session.cart});
+  } catch(e){
+    log(`Buy error: ${e.message}`, 'error');
+    res.status(500).json({error:e.message});
+  }
 });
 
 // Get cart
-app.get('/cart', (req,res) => {
-  const sessionId = req.cookies.sessionId;
-  const user = getUserBySession(sessionId);
-  if (!user) return res.status(401).json({ error: "Login required" });
+app.get('/cart/:userId', (req,res)=>{
+  try{
+    const session = getSession(req.params.userId);
+    const cart = session.cart.map(item=>{
+      const prod = products.find(p=>p.id===item.productId);
+      return { name: prod.name, quantity:item.quantity, price:prod.price, total:prod.price*item.quantity };
+    });
+    const totalPrice = cart.reduce((a,b)=>a+b.total,0);
+    res.json({cart, totalPrice});
+  } catch(e){
+    log(`Cart error: ${e.message}`, 'error');
+    res.status(500).json({error:e.message});
+  }
+});
 
-  const cart = user.cart.map(i => {
-    const p = products.find(p=>p.id===i.productId);
-    return { name: p.name, price: p.price, quantity: i.quantity, total: p.price*i.quantity };
-  });
-  const total = cart.reduce((a,b)=>a+b.total,0);
-  res.json({ cart, totalPrice: total });
+// Get all products with favorites & top-sold sorting
+app.get('/products', (req,res)=>{
+  try{
+    const { userId } = req.query;
+    const session = getSession(userId || 'guest');
+
+    // Top favorites first
+    const favs = products.filter(p => session.favorites.includes(p.id));
+
+    // Top sold globally
+    const topSold = products.filter(p => !favs.includes(p))
+                            .sort((a,b)=> (b.soldCount||0) - (a.soldCount||0))
+                            .slice(0,10);
+
+    const remaining = products.filter(p => !favs.includes(p) && !topSold.includes(p));
+
+    const finalList = [...favs, ...topSold, ...remaining];
+
+    res.json(finalList);
+  } catch(e){
+    log(`Products error: ${e.message}`, 'error');
+    res.status(500).json({error:e.message});
+  }
+});
+
+// Favorite/unfavorite
+app.post('/favorite', (req,res)=>{
+  try{
+    const { userId, productId } = req.body;
+    const session = getSession(userId);
+    const index = session.favorites.indexOf(productId);
+    if(index===-1) session.favorites.push(productId);
+    else session.favorites.splice(index,1);
+    res.json({favorites: session.favorites});
+  } catch(e){
+    log(`Favorite error: ${e.message}`, 'error');
+    res.status(500).json({error:e.message});
+  }
 });
 
 // Save products periodically
 setInterval(()=>{
-  const data = "module.exports = "+JSON.stringify(products,null,2);
-  fs.writeFile(path.join(__dirname,'products.js'),data,err=>{
-    if(err) console.error("Failed saving products:",err);
-    else console.log("Products saved!");
-  });
+  try{
+    const data = "module.exports = "+JSON.stringify(products,null,2);
+    fs.writeFile(path.join(__dirname,'products.js'), data, err=>{
+      if(err) log(`Failed saving products: ${err.message}`, 'error');
+      else log("Products saved successfully!",'info');
+    });
+  } catch(e){ log(`Save interval error: ${e.message}`, 'error'); }
 },60000);
 
+// Global error handling
+app.use((err, req, res, next)=>{
+  log(`Unhandled error: ${err.message}`, 'error');
+  res.status(500).json({error: err.message});
+});
+
 // Start server
-app.listen(PORT,()=>log(`Ultimate God-Level Shop Server running on port ${PORT}`));
+app.listen(PORT, ()=>log(`Ühishanke Ultimate God-Level Server running on port ${PORT}`, 'info'));
