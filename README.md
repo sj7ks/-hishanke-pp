@@ -1,25 +1,28 @@
 # Ühishanke Ultimate App
 
-**Author:** Christofer Robin Münz  
-**Version:** 1.0.0
+![App Banner](add-your-banner-image-link-here)
 
-## Description
-Professional order management app for quick checking, cart management, notifications to Telegram, multi-language support, and smooth UI.  
+## Overview
+Ühishanke Ultimate is a professional, user-friendly order management app designed to help manage products, track stock, and handle purchases efficiently. Perfect for small businesses or personal projects, it features a colorful and interactive UI, cart system, favorites, and notifications.
+
+---
 
 ## Features
-- 5k+ products support
-- Add to cart / Buy flow
-- Notifications to Telegram
-- Multi-language: Estonian, English, Russian
-- Session persistence (1 week)
-- Favorites & top-10 trending products
-- Smooth animations & lighting effects
-- Responsive and polished UI
+- **Multi-product support**: Display and manage hundreds to thousands of products.
+- **Add to cart**: Select product quantities and review before purchase.
+- **Favorites**: Mark products as favorites and view them separately.
+- **Top products**: View most bought items and most favorited items with smooth horizontal scrolling.
+- **Stock management**: Real-time stock updates and notifications for low or no stock.
+- **User accounts**: Login system with session persistence for a week.
+- **Multi-language**: Supports Estonian, English, and Russian (select on starting screen).
+- **Bug reporting**: Quick bug reporting system integrated in the app.
+- **Telegram notifications**: Alerts sent to admin (your mom) when actions like purchases or checks occur.
+
+---
 
 ## Installation
+
+1. Clone the repository:
 ```bash
-git clone <repo-url>
-cd uhishanke-app
-npm install
-cp .env.example .env
-npm start
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
