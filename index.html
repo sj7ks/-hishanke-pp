@@ -2,241 +2,90 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ühishanke Ultimate App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Christofer’s Hyper Shop</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-  <!-- Header -->
+  <!-- HEADER -->
   <header>
-    Ühishanke Ultimate
+    <div class="header-left">
+      <h1>🛍️ Christofer’s Hyper Shop</h1>
+    </div>
+    <div class="header-right">
+      <select id="language" class="lang-select">
+        <option value="en">🇬🇧 English</option>
+        <option value="et">🇪🇪 Eesti</option>
+        <option value="ru">🇷🇺 Русский</option>
+      </select>
+      <button id="login-btn" class="btn-primary">Login</button>
+      <div id="cart-icon">🛒</div>
+    </div>
   </header>
 
-  <!-- Language Selection -->
-  <div class="language-bar">
-    <label for="lang-select">Language:</label>
-    <select id="lang-select">
-      <option value="en">English</option>
-      <option value="et">Estonian</option>
-      <option value="ru">Russian</option>
+  <!-- LOGIN / REGISTER MODAL -->
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="auth-close" class="modal-close">&times;</span>
+      <h2 id="auth-title">Login</h2>
+      <input type="email" id="auth-email" placeholder="Email">
+      <input type="password" id="auth-password" placeholder="Password">
+      <button id="auth-submit" class="btn-primary">Login</button>
+      <p id="toggle-auth">No account? <span class="link">Register here</span></p>
+    </div>
+  </div>
+
+  <!-- CART DROPDOWN -->
+  <div id="cart-dropdown" class="cart-dropdown hidden">
+    <h3>🛒 Your Cart</h3>
+    <div id="cart-items"></div>
+    <div class="cart-footer">
+      <p id="cart-total">Total: $0</p>
+      <button id="checkout-btn" class="btn-success">Checkout</button>
+    </div>
+  </div>
+
+  <!-- SEARCH + FILTER -->
+  <div class="top-bar">
+    <input type="text" id="search" placeholder="🔎 Search products...">
+    <select id="category-filter">
+      <option value="all">All Categories</option>
+      <option value="fruits">🍎 Fruits</option>
+      <option value="drinks">🥤 Drinks</option>
+      <option value="snacks">🍫 Snacks</option>
     </select>
   </div>
 
-  <!-- Top 10 Trending -->
-  <section class="top-trending-section">
-    <h2>Top 10 Trending</h2>
-    <div class="top-trending-container"></div>
+  <!-- FAVORITES CAROUSEL -->
+  <section>
+    <h2>❤️ Your Favorites</h2>
+    <div id="favorites-carousel" class="carousel"></div>
   </section>
 
-  <!-- Top Bar: Search + Sort -->
-  <div class="top-bar">
-    <input type="text" id="search-input" placeholder="Search products...">
-    <select id="sort-select">
-      <option value="popularity">Most Bought</option>
-      <option value="price-asc">Price ↑</option>
-      <option value="price-desc">Price ↓</option>
-    </select>
-  </div>
+  <!-- MOST BOUGHT CAROUSEL -->
+  <section>
+    <h2>🔥 Most Bought</h2>
+    <div id="most-bought-carousel" class="carousel"></div>
+  </section>
 
-  <!-- Products Container -->
-  <div class="products-container"></div>
+  <!-- PRODUCTS GRID -->
+  <main>
+    <h2>📦 Products</h2>
+    <div id="products-container" class="products-container"></div>
+  </main>
 
-  <!-- Cart Modal -->
-  <div class="cart-modal">
-    <div class="cart-content">
-      <h2>Cart</h2>
-      <div class="cart-items"></div>
-      <p>Total: $<span id="cart-total">0</span></p>
-      <div class="cart-buttons">
-        <button id="cancel-order">Cancel Order</button>
-        <button id="buy-now">Buy Now</button>
-      </div>
-      <button class="close-cart">X</button>
-    </div>
-  </div>
-
-  <!-- Product Details Modal -->
-  <div class="product-modal">
-    <div class="product-details">
-      <h2 id="modal-name"></h2>
-      <img id="modal-img" src="" alt="">
-      <p id="modal-desc"></p>
-      <p>Price: $<span id="modal-price"></span></p>
-      <p>Stock: <span id="modal-stock"></span></p>
-      <div class="modal-buttons">
-        <button id="modal-add-cart">Add to Cart</button>
-        <button id="modal-favorite">❤️ Favorite</button>
-      </div>
-      <button class="close-modal">X</button>
-    </div>
-  </div>
-
-  <!-- Notification -->
-  <div class="notification" id="notification"></div>
-
-  <!-- Bug Report -->
-  <div class="bug-report">
-    <textarea id="bug-msg" placeholder="Report a bug..."></textarea>
-    <button id="send-bug">Send</button>
-  </div>
-
-  <!-- Footer -->
+  <!-- BUG REPORT -->
   <footer>
-    &copy; 2025 Ühishanke Ultimate. All rights reserved.
+    <h3>🐞 Found a Bug?</h3>
+    <textarea id="bug-report" placeholder="Describe the issue..."></textarea>
+    <button id="submit-bug" class="btn-warning">Send Bug Report</button>
+    <p class="footer-note">© 2025 Christofer Robin Münz – All Rights Reserved</p>
   </footer>
 
-  <script>
-    let products = [];
-    let userId = 'user123'; // demo user id
-    let cart = [];
-    let favorites = [];
-    const notification = document.getElementById('notification');
+  <!-- NOTIFICATIONS -->
+  <div id="notification" class="notification hidden"></div>
 
-    // Fetch products
-    async function loadProducts() {
-      const res = await axios.get(`/products?userId=${userId}`);
-      products = res.data;
-      displayProducts();
-      displayTopTrending();
-    }
-
-    function showNotification(msg) {
-      notification.innerText = msg;
-      notification.style.display = 'block';
-      setTimeout(()=>notification.style.display='none', 3000);
-    }
-
-    // Display Products
-    function displayProducts() {
-      const container = document.querySelector('.products-container');
-      container.innerHTML = '';
-      products.forEach(p=>{
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.innerHTML = `
-          <img src="${p.image}" alt="${p.name}">
-          <h3>${p.name}</h3>
-          <p>Price: $${p.price}</p>
-          <p>Stock: <span class="${p.stock>0?'in-stock':'out-stock'}">${p.stock>0?p.stock:'No Stock'}</span></p>
-          <div class="quantity-container">
-            <button class="minus">-</button>
-            <input type="number" class="quantity-input" value="0" min="0">
-            <button class="plus">+</button>
-          </div>
-          <div class="product-buttons">
-            <button class="add-cart-btn">Add to Cart</button>
-            <button class="fav-btn">${favorites.includes(p.id)?'❤️':'♡'}</button>
-          </div>
-        `;
-        // Click to open product modal
-        card.querySelector('img').addEventListener('click', ()=>openProductModal(p));
-        container.appendChild(card);
-
-        // Quantity controls
-        const input = card.querySelector('.quantity-input');
-        card.querySelector('.minus').onclick = ()=>{ if(input.value>0) input.value-- };
-        card.querySelector('.plus').onclick = ()=>{ input.value++ };
-
-        // Add to cart
-        card.querySelector('.add-cart-btn').onclick = ()=>{
-          const qty = parseInt(input.value);
-          if(qty>0) addToCart(p.id, qty);
-        };
-
-        // Favorite
-        card.querySelector('.fav-btn').onclick = ()=>{
-          toggleFavorite(p.id, card.querySelector('.fav-btn'));
-        };
-      });
-    }
-
-    // Add to cart
-    function addToCart(productId, qty) {
-      const existing = cart.find(c=>c.productId===productId);
-      if(existing) existing.quantity += qty;
-      else cart.push({ productId, quantity: qty });
-      showNotification('Added to cart');
-      updateCartUI();
-      // send to backend
-      axios.post('/buy-product', { productId, quantity: qty, userId });
-    }
-
-    // Toggle favorite
-    function toggleFavorite(productId, btn){
-      if(favorites.includes(productId)){
-        favorites = favorites.filter(f=>f!==productId);
-        btn.innerText='♡';
-        axios.post('/unfavorite',{userId, productId});
-      } else {
-        favorites.push(productId);
-        btn.innerText='❤️';
-        axios.post('/favorite',{userId, productId});
-      }
-    }
-
-    // Display top trending
-    function displayTopTrending(){
-      const container = document.querySelector('.top-trending-container');
-      container.innerHTML='';
-      const top10 = products.slice(0,10);
-      top10.forEach(p=>{
-        const card = document.createElement('div');
-        card.className='product-card top-trend';
-        card.innerHTML=`<img src="${p.image}" alt="${p.name}"><h4>${p.name}</h4>`;
-        container.appendChild(card);
-      });
-    }
-
-    // Product modal
-    const modal = document.querySelector('.product-modal');
-    function openProductModal(p){
-      modal.style.display='flex';
-      document.getElementById('modal-name').innerText = p.name;
-      document.getElementById('modal-img').src = p.image;
-      document.getElementById('modal-price').innerText = p.price;
-      document.getElementById('modal-stock').innerText = p.stock>0?p.stock:'No Stock';
-      document.getElementById('modal-add-cart').onclick = ()=>{ addToCart(p.id,1); modal.style.display='none'; };
-      document.getElementById('modal-favorite').onclick = ()=>toggleFavorite(p.id, document.getElementById('modal-favorite'));
-    }
-    document.querySelector('.close-modal').onclick = ()=>modal.style.display='none';
-
-    // Cart modal
-    const cartModal = document.querySelector('.cart-modal');
-    document.getElementById('buy-now').onclick = ()=>{ alert('Proceed to payment placeholder'); cartModal.style.display='none'; };
-    document.getElementById('cancel-order').onclick = ()=>{ cart=[]; updateCartUI(); cartModal.style.display='none'; };
-    document.querySelector('.close-cart').onclick = ()=>cartModal.style.display='none';
-
-    function updateCartUI(){
-      const cartItems = document.querySelector('.cart-items');
-      cartItems.innerHTML='';
-      let total=0;
-      cart.forEach(item=>{
-        const p = products.find(x=>x.id===item.productId);
-        const div = document.createElement('div');
-        div.className='cart-item';
-        div.innerHTML=`${p.name} x ${item.quantity} = $${p.price*item.quantity}`;
-        cartItems.appendChild(div);
-        total += p.price*item.quantity;
-      });
-      document.getElementById('cart-total').innerText = total.toFixed(2);
-    }
-
-    // Bug report
-    document.getElementById('send-bug').onclick = ()=>{
-      const msg = document.getElementById('bug-msg').value;
-      if(msg) axios.post('/report-bug',{ userId, message: msg });
-      document.getElementById('bug-msg').value='';
-      showNotification('Bug reported');
-    }
-
-    // Language change
-    document.getElementById('lang-select').onchange = (e)=>{
-      axios.post('/set-lang',{ userId, lang: e.target.value });
-      showNotification('Language changed');
-    }
-
-    loadProducts();
-  </script>
+  <!-- SCRIPTS -->
+  <script src="client.js"></script>
 </body>
 </html>
