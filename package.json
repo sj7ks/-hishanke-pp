@@ -1,20 +1,15 @@
 {
   "name": "uhishanke-app",
   "version": "1.0.0",
-  "description": "Ühishanke Shopping App - Professional, Multi-user, Notification Ready",
+  "description": "Ühishanke app for product management",
   "main": "app.js",
-  "author": "Christofer Robin Münz",
-  "license": "MIT",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "node app.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "body-parser": "^1.20.2",
-    "node-fetch": "^3.3.2"
+    "body-parser": "^1.20.2"
   },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
-  }
+  "author": "Christofer Robin Münz",
+  "license": "ISC"
 }
