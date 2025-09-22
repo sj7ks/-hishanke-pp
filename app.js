@@ -1,164 +1,113 @@
-// DOM Elements
-const productList = document.getElementById("product-list");
-const searchInput = document.getElementById("search");
-const filterSelect = document.getElementById("filter");
+// app.js - Ühishanke Ultimate Backend v2
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
 
-// Load data from localStorage
-let cooldowns = JSON.parse(localStorage.getItem("cooldowns")) || {};
-let quantities = JSON.parse(localStorage.getItem("quantities")) || {};
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// --- Helper Functions ---
-function saveCooldowns() {
-  localStorage.setItem("cooldowns", JSON.stringify(cooldowns));
-}
-function saveQuantities() {
-  localStorage.setItem("quantities", JSON.stringify(quantities));
-}
+// Load products (products.js exports array)
+let products = require('./products.js');
 
-function setCooldown(productId, minutes = 10) {
-  const until = Date.now() + minutes * 60_000;
-  cooldowns[productId] = until;
-  saveCooldowns();
-}
-function isOnCooldown(productId) {
-  const until = cooldowns[productId] || 0;
-  return Date.now() < until;
-}
+// Store user sessions and cooldowns
+const userSessions = {}; // { userId: { cart: [], lastActions: {} } }
 
-// --- Render Products ---
-function renderProducts() {
-  const searchTerm = searchInput.value.toLowerCase();
-  const categoryFilter = filterSelect.value;
+// Middleware
+app.use(express.static(__dirname));
+app.use(bodyParser.json());
 
-  productList.innerHTML = "";
-
-  products
-    .filter(p => (p.name.toLowerCase().includes(searchTerm)) &&
-                 (!categoryFilter || p.category === categoryFilter))
-    .forEach(p => {
-      const card = document.createElement("div");
-      card.className = "product-card";
-      card.id = `product-${p.id}`;
-
-      const qtyValue = quantities[p.id] || 0;
-
-      card.innerHTML = `
-        <img src="${p.image}" alt="${p.name}">
-        <h3 class="font-semibold text-lg">${p.name}</h3>
-        <p>Price: $${p.price}</p>
-        <p>Stock: ${p.stock}</p>
-        <p>Quantity: <input type="number" min="0" value="${qtyValue}" class="quantity-input w-16 border rounded p-1"></p>
-        <button class="check-btn">Check</button>
-        <button class="buy-btn">Buy</button>
-      `;
-
-      productList.appendChild(card);
-
-      const checkBtn = card.querySelector(".check-btn");
-      const buyBtn = card.querySelector(".buy-btn");
-      const qtyInput = card.querySelector(".quantity-input");
-
-      // Restore cooldown
-      if (isOnCooldown(p.id)) {
-        checkBtn.disabled = true;
-        checkBtn.textContent = "Requested (cooldown)";
-      }
-
-      // Restore quantity
-      qtyInput.value = quantities[p.id] || 0;
-
-      // Quantity input
-      qtyInput.addEventListener("input", () => {
-        quantities[p.id] = parseInt(qtyInput.value) || 0;
-        saveQuantities();
-        updateTotals();
-      });
-
-      // Check button
-      checkBtn.addEventListener("click", () => {
-        if (isOnCooldown(p.id)) return;
-        alert(`Requested stock check for ${p.name}`);
-        setCooldown(p.id, 10);
-        checkBtn.disabled = true;
-        checkBtn.textContent = "Requested (cooldown)";
-        p.lastChecked = Date.now();
-        updateTotals();
-      });
-
-      // Buy button
-      buyBtn.addEventListener("click", () => {
-        if (!p.lastChecked || Date.now() - p.lastChecked > 7 * 24 * 60 * 60 * 1000) {
-          alert(`Price not updated in last 7 days. Request check first.`);
-          return;
-        }
-        const qty = parseInt(qtyInput.value) || 0;
-        if (qty === 0) {
-          alert("Please enter quantity before buying.");
-          return;
-        }
-        if (qty > p.stock) {
-          alert("Quantity exceeds stock available!");
-          return;
-        }
-        alert(`Send $${(p.price * qty).toFixed(2)} to mom via Revolut.`);
-        // Update stock
-        p.stock -= qty;
-        qtyInput.value = 0;
-        quantities[p.id] = 0;
-        saveQuantities();
-        renderProducts();
-      });
-    });
-
-  attachQuantityListeners();
-  updateTotals();
-}
-
-// --- Totals ---
-function updateTotals() {
-  const totalsDiv = document.getElementById("totals");
-  totalsDiv.innerHTML = "";
-
-  let totalCost = 0;
-  let totalItems = 0;
-
-  products.forEach(p => {
-    const qty = quantities[p.id] || 0;
-    if (qty > 0) {
-      totalItems += qty;
-      totalCost += qty * parseFloat(p.price);
-    }
-  });
-
-  totalsDiv.innerHTML = `
-    <p>Total items: ${totalItems}</p>
-    <p>Total cost: $${totalCost.toFixed(2)}</p>
-  `;
-}
-
-// Attach quantity listeners (just in case)
-function attachQuantityListeners() {
-  products.forEach(p => {
-    const input = document.querySelector(`#product-${p.id} .quantity-input`);
-    if (input) {
-      input.addEventListener("input", updateTotals);
-    }
-  });
-}
-
-// --- Search / Filter ---
-searchInput.addEventListener("input", renderProducts);
-filterSelect.addEventListener("change", renderProducts);
-
-// --- Initial Render ---
-renderProducts();
-
-// --- Bug Reporting ---
-const bugForm = document.getElementById("bug-form");
-bugForm.addEventListener("submit", e => {
-  e.preventDefault();
-  const desc = document.getElementById("bug-description").value;
-  if (!desc) return;
-  alert(`Bug reported: ${desc}`);
-  document.getElementById("bug-description").value = "";
+// Logger
+app.use((req,res,next)=>{
+  console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.url}`);
+  next();
 });
+
+// Utility functions
+function getUserSession(userId){
+  if(!userSessions[userId]) userSessions[userId]={ cart:[], lastActions:{} };
+  return userSessions[userId];
+}
+function canPerformAction(userId, actionKey, cooldownMs){
+  const session = getUserSession(userId);
+  const last = session.lastActions[actionKey] || 0;
+  return (Date.now() - last) > cooldownMs;
+}
+function updateActionTimestamp(userId, actionKey){ 
+  const session = getUserSession(userId);
+  session.lastActions[actionKey] = Date.now();
+}
+
+// Notification placeholder
+function sendNotification(msg){
+  console.log(`[Notification]: ${msg}`);
+}
+
+// Endpoints
+app.post('/check-product', (req,res)=>{
+  const { productId, userId } = req.body;
+  const product = products.find(p=>p.id===productId);
+  if(!product) return res.status(404).json({error:"Product not found"});
+
+  if(!canPerformAction(userId, `check-${productId}`, 2*60*1000)){
+    return res.status(429).json({error:"Cooldown: wait before checking again"});
+  }
+
+  // simulate stock fluctuation
+  product.stock = Math.max(product.stock + Math.floor(Math.random()*3),0);
+  product.lastChecked = new Date().toLocaleString();
+
+  updateActionTimestamp(userId, `check-${productId}`);
+  sendNotification(`User ${userId} checked ${product.name}`);
+
+  res.json({ok:true, product});
+});
+
+app.post('/buy-product', (req,res)=>{
+  const { productId, quantity, userId } = req.body;
+  const product = products.find(p=>p.id===productId);
+  if(!product) return res.status(404).json({error:"Product not found"});
+  if(quantity<=0 || quantity>product.stock) return res.status(400).json({error:"Invalid quantity"});
+
+  if(!canPerformAction(userId, `buy-${productId}`, 5000)){ // 5s cooldown
+    return res.status(429).json({error:"Cooldown: wait before buying again"});
+  }
+
+  product.stock -= quantity;
+  const session = getUserSession(userId);
+  const existingItem = session.cart.find(c=>c.productId===productId);
+  if(existingItem) existingItem.quantity += quantity;
+  else session.cart.push({ productId, quantity });
+
+  updateActionTimestamp(userId, `buy-${productId}`);
+  sendNotification(`User ${userId} bought ${quantity} x ${product.name}`);
+
+  res.json({ok:true, product, cart: session.cart});
+});
+
+// Get user cart
+app.get('/cart/:userId', (req,res)=>{
+  const userId = req.params.userId;
+  const session = getUserSession(userId);
+  const cartDetails = session.cart.map(item=>{
+    const prod = products.find(p=>p.id===item.productId);
+    return { name: prod.name, quantity: item.quantity, price: prod.price, total: prod.price*item.quantity };
+  });
+  const totalPrice = cartDetails.reduce((a,b)=>a+b.total,0);
+  res.json({cart: cartDetails, totalPrice});
+});
+
+// Get all products
+app.get('/products', (req,res)=> res.json(products));
+
+// Save products periodically
+setInterval(()=>{
+  const data = "module.exports = "+JSON.stringify(products,null,2);
+  fs.writeFile(path.join(__dirname,'products.js'),data,err=>{
+    if(err) console.error("Failed saving products:",err);
+    else console.log("Products saved to disk");
+  });
+},60000);
+
+// Start server
+app.listen(PORT,()=>console.log(`Ühishanke Ultimate Server v2 running on port ${PORT}`));
