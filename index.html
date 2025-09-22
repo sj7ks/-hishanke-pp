@@ -3,77 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ühishanke Pro — Group Orders</title>
-
-<!-- Tailwind CSS CDN for styling -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Custom CSS -->
-<link rel="stylesheet" href="style.css">
+<title>Ühishanke Ultimate</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0;}
+body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #1e293b;}
+header { background: #0f172a; color: #f1f5f9; text-align: center; padding: 1.5rem; font-size: 2rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+.top-bar { display:flex; flex-wrap:wrap; justify-content: space-between; max-width: 1500px; margin:auto; padding:1rem 2rem; gap:1rem;}
+.top-bar input[type="text"] { flex:1; padding:0.5rem 1rem; border-radius:8px; border:1px solid #cbd5e1;}
+.top-bar select { padding:0.5rem 1rem; border-radius:8px; border:1px solid #cbd5e1;}
+.products-container { display:grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap:1.8rem; padding:2rem; max-width:1500px; margin:auto;}
+.product-card { background:#fff; border-radius:18px; padding:1rem 1.5rem; box-shadow:0 6px 24px rgba(0,0,0,0.12); display:flex; flex-direction:column; align-items:center; transition: transform 0.3s ease, box-shadow 0.3s ease; position:relative;}
+.product-card:hover { transform: translateY(-6px); box-shadow: 0 12px 36px rgba(0,0,0,0.18);}
+.product-card img { width:140px; height:140px; object-fit:contain; border-radius:10px; margin-bottom:1rem; transition: transform 0.3s ease;}
+.product-card:hover img { transform: scale(1.08);}
+.product-card h3 { font-weight:700; font-size:1.3rem; margin:0.5rem 0; text-align:center;}
+.product-card p { margin:0.2rem 0; font-size:0.95rem; text-align:center;}
+.quantity-container { display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0;}
+.quantity-input { width:60px; padding:6px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem; text-align:center;}
+.quantity-slider { width:100px;}
+.product-buttons { display:flex; gap:0.5rem; margin-top:0.5rem;}
+.check-btn, .buy-btn { padding:0.5rem 0.9rem; border:none; border-radius:8px; font-weight:600; cursor:pointer; transition: all 0.2s ease; min-width:70px; font-size:0.95rem;}
+.check-btn { background:#38bdf8; color:#fff;}
+.check-btn:hover { background:#0ea5e9;}
+.buy-btn { background:#10b981; color:#fff;}
+.buy-btn:hover { background:#059669;}
+.disabled { background:#94a3b8 !important; cursor:not-allowed;}
+.stock-bar-container { width:100%; background:#e2e8f0; height:12px; border-radius:6px; margin:4px 0; overflow:hidden;}
+.stock-bar { height:12px; border-radius:6px; background:#10b981; width:0%; transition: width 0.3s ease, background 0.3s ease;}
+.notification { position: fixed; top: 10px; right: 10px; background: #1e40af; color:#fff; padding:1rem 1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.2); display:none; animation: fadein 0.5s; font-weight:600; z-index:999;}
+@keyframes fadein { from {opacity:0;} to {opacity:1;}}
+footer { text-align:center; padding:1.5rem; font-size:0.9rem; color:#64748b;}
+</style>
 </head>
-<body class="bg-gray-100">
+<body>
 
-<!-- Container -->
-<div class="container mx-auto p-6">
-
-  <!-- Header -->
-  <header class="text-center mb-8">
-    <h1 class="text-5xl font-bold text-indigo-700 mb-2">Ühishanke Pro</h1>
-    <p class="text-gray-600 text-lg">Professional group ordering app for your team</p>
-  </header>
-
-  <!-- Search & Filter -->
-  <section class="mb-6">
-    <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
-      <input id="search" type="text" placeholder="Search products..." class="rounded-full p-3 border border-gray-300 w-full md:w-1/2">
-      <select id="filter" class="rounded-full p-3 border border-gray-300 w-full md:w-1/4">
-        <option value="">All Categories</option>
-        <option value="fruit">Fruit</option>
-        <option value="veg">Vegetables</option>
-        <option value="dairy">Dairy</option>
-      </select>
-    </div>
-  </section>
-
-  <!-- Product Grid -->
-  <section>
-    <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-  </section>
-
-  <!-- Totals Section -->
-  <section class="mt-8">
-    <h2 class="text-3xl font-semibold mb-3">Order Summary</h2>
-    <div id="totals" class="bg-white p-5 rounded-lg shadow-md text-gray-700">
-      <p>Total items: 0</p>
-      <p>Total cost: $0.00</p>
-    </div>
-  </section>
-
-  <!-- Bug Reporting Section -->
-  <section class="mt-10">
-    <h2 class="text-3xl font-semibold mb-3">Report a Bug</h2>
-    <form id="bug-form" class="flex flex-col md:flex-row gap-3">
-      <input type="text" id="bug-description" placeholder="Describe the bug..." class="flex-grow rounded-full p-3 border border-gray-300" required>
-      <button type="submit" class="bg-red-600 text-white rounded-full px-6 py-3 hover:bg-red-700 transition duration-200">Submit</button>
-    </form>
-  </section>
-
-  <!-- Footer -->
-  <footer class="mt-12 text-center text-gray-500 text-sm">
-    &copy; 2025 Ühishanke Pro. All rights reserved.
-  </footer>
-
+<header>Ühishanke Ultimate</header>
+<div class="top-bar">
+  <input type="text" id="search-input" placeholder="Search products...">
+  <select id="sort-select">
+    <option value="">Sort by</option>
+    <option value="name-asc">Name A-Z</option>
+    <option value="name-desc">Name Z-A</option>
+    <option value="price-asc">Price Low-High</option>
+    <option value="price-desc">Price High-Low</option>
+  </select>
 </div>
+<div class="products-container" id="products-container"></div>
+<div class="notification" id="notification">Notification</div>
+<footer>© 2025 Ühishanke Group</footer>
 
-<!-- JS Files -->
 <script src="products.js"></script>
-<script src="app.js"></script>
-button.addEventListener("click", () => {
-  fetch("/check-product", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId: p.id })
+<script>
+const container=document.getElementById("products-container");
+const notification=document.getElementById("notification");
+const searchInput=document.getElementById("search-input");
+const sortSelect=document.getElementById("sort-select");
+
+function showNotification(msg){ notification.innerText=msg; notification.style.display="block"; setTimeout(()=>{notification.style.display="none";},3000);}
+function getStockBarWidth(stock,max){return Math.min((stock/max)*100,100);}
+function createCard(p){
+  const card=document.createElement("div");
+  card.className="product-card";
+  card.id=`product-${p.id}`;
+  card.innerHTML=`
+    <img src="${p.image}" alt="${p.name}">
+    <h3>${p.name}</h3>
+    <p>Price: $${p.price.toFixed(2)}</p>
+    <p>Last Checked: ${p.lastChecked}</p>
+    <div class="stock-bar-container"><div class="stock-bar" style="width:${getStockBarWidth(p.stock,p.maxStock)}%; background:${p.stock>20?'#10b981':p.stock>5?'#facc15':'#ef4444'}"></div></div>
+    <div class="quantity-container"><input type="number" min="0" value="0" class="quantity-input"><input type="range" min="0" max="${p.stock}" value="0" class="quantity-slider"></div>
+    <div class="product-buttons"><button class="check-btn">Check</button><button class="buy-btn">Buy</button></div>
+  `;
+  container.appendChild(card);
+  const checkBtn=card.querySelector(".check-btn");
+  const buyBtn=card.querySelector(".buy-btn");
+  const quantityInput=card.querySelector(".quantity-input");
+  const quantitySlider=card.querySelector(".quantity-slider");
+  const stockBar=card.querySelector(".stock-bar");
+
+  if(p.stock===0) buyBtn.classList.add("disabled");
+
+  // Sync input & slider
+  quantityInput.addEventListener("input",()=>{ quantitySlider.value=quantityInput.value; });
+  quantitySlider.addEventListener("input",()=>{ quantityInput.value=quantitySlider.value; });
+
+  checkBtn.addEventListener("click",()=>{
+    if(checkBtn.classList.contains("disabled")) return;
+    checkBtn.classList.add("disabled"); checkBtn.innerText="Checking...";
+    fetch("/check-product",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({productId:p.id})})
+      .then(res=>res.json()).then(data=>{
+        p.lastChecked=new Date().toLocaleString();
+        card.querySelector("p:nth-of-type(2)").innerText=`Last Checked: ${p.lastChecked}`;
+        showNotification(`Check requested for ${p.name}`);
+        checkBtn.classList.remove("disabled"); checkBtn.innerText="Check";
+      }).catch(err=>{showNotification("Error checking product"); checkBtn.classList.remove("disabled"); checkBtn.innerText="Check";});
   });
+
+  buyBtn.addEventListener("click",()=>{
+    if(buyBtn.classList.contains("disabled")) return;
+    const qty=parseInt(quantityInput.value);
+    if(qty<=0){ showNotification("Enter quantity!"); return;}
+    if(qty>p.stock){ showNotification("Not enough stock!"); return;}
+    p.stock-=qty;
+    stockBar.style.width=getStockBarWidth(p.stock,p.maxStock)+"%";
+    stockBar.style.background=p.stock>20?'#10b981':p.stock>5?'#facc15':'#ef4444';
+    fetch("/buy-product",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({productId:p.id,quantity:qty})});
+    quantityInput.value=0; quantitySlider.value=0;
+    showNotification(`Bought ${qty} x ${p.name}`);
+    if(p.stock===0) buyBtn.classList.add("disabled");
+  });
+}
+
+function renderProducts(list){ container.innerHTML=""; list.forEach(createCard); }
+renderProducts(products);
+
+// Search
+searchInput.addEventListener("input",()=>{ 
+  const term=searchInput.value.toLowerCase();
+  renderProducts(products.filter(p=>p.name.toLowerCase().includes(term)));
 });
+
+// Sort
+sortSelect.addEventListener("change",()=>{
+  const val=sortSelect.value;
+  let sorted=[...products];
+  if(val==="name-asc") sorted.sort((a,b)=>a.name.localeCompare(b.name));
+  if(val==="name-desc") sorted.sort((a,b)=>b.name.localeCompare(a.name));
+  if(val==="price-asc") sorted.sort((a,b)=>a.price-a.price);
+  if(val==="price-desc") sorted.sort((a,b)=>b.price-a.price);
+  renderProducts(sorted);
+});
+</script>
 </body>
 </html>
