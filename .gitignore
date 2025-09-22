@@ -1,21 +1,24 @@
 # Node modules
-/node_modules/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+node_modules/
 
 # Environment variables
 .env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Build artifacts (if any)
+# Build output (if any)
 dist/
 build/
 
-# Render-specific files (optional)
-render.yaml
+# VS Code settings
+.vscode/
+
+# Temporary files
+*.tmp
