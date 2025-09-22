@@ -1,157 +1,224 @@
-// app.js - Ühishanke Ultimate App v1.0
+// app.js - Professional God-Level Shop Backend
 require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
-const axios = require('axios');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const TelegramBot = require('node-telegram-bot-api');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SECRET = process.env.JWT_SECRET || "supersecretkey";
 
-// Load products
-let products = require('./products.js');
+// Telegram Bot
+const telegramBot = new TelegramBot(process.env.TELEGRAM_TOKEN);
+const momId = process.env.MOM_CHAT_ID;
 
-// Sessions & favorites
-const userSessions = {}; // { userId: { cart: [], favorites: [], lastActions: {}, lang: 'en' } }
+// DB Simulations
+const DB_PATH = path.join(__dirname, "db.json");
+let db = { users: {}, products: require("./products.js") };
+
+// Load db.json if exists
+if (fs.existsSync(DB_PATH)) {
+  try {
+    db = JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+  } catch (err) {
+    console.error("Failed to load DB, using defaults.");
+  }
+}
+
+// Helpers
+function saveDB() {
+  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+}
+
+function sendTelegram(message) {
+  if (process.env.TELEGRAM_TOKEN && momId) {
+    telegramBot.sendMessage(momId, message).catch(console.error);
+  }
+}
+
+function generateToken(userId) {
+  return jwt.sign({ id: userId }, SECRET, { expiresIn: "7d" });
+}
+
+function auth(req, res, next) {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Not logged in" });
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    req.user = db.users[decoded.id];
+    if (!req.user) throw new Error("User not found");
+    next();
+  } catch {
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+}
 
 // Middleware
 app.use(express.static(__dirname));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
-// Logger
-function log(msg) {
-  console.log(`[${new Date().toLocaleString()}] ${msg}`);
-}
-app.use((req,res,next)=>{ log(`${req.method} ${req.url}`); next(); });
+// ============ AUTH ROUTES ============
 
-// Utilities
-function getSession(userId) {
-  if(!userSessions[userId]) userSessions[userId] = { cart: [], favorites: [], lastActions: {}, lang: 'en' };
-  return userSessions[userId];
-}
-function canAct(userId, key, cooldown){
-  const last = getSession(userId).lastActions[key] || 0;
-  return Date.now() - last > cooldown;
-}
-function updateTimestamp(userId, key){
-  getSession(userId).lastActions[key] = Date.now();
-}
+// Register
+app.post("/register", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ error: "Email and password required" });
 
-// Telegram notification
-async function sendTelegramMessage(message){
-  try {
-    await axios.post(`https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`, {
-      chat_id: process.env.MOM_CHAT_ID,
-      text: message
-    });
-  } catch(err){ console.error("Telegram error:", err.message); }
-}
+  if (db.users[email])
+    return res.status(409).json({ error: "User already exists" });
 
-// --- Endpoints ---
+  const hash = await bcrypt.hash(password, 12);
+  db.users[email] = {
+    id: email,
+    password: hash,
+    cart: [],
+    favorites: [],
+    lang: "en",
+  };
 
-// Change language
-app.post('/set-lang', (req,res)=>{
-  const { userId, lang } = req.body;
-  if(!['en','et','ru'].includes(lang)) return res.status(400).json({error:"Invalid language"});
-  getSession(userId).lang = lang;
-  res.json({ok:true, lang});
+  saveDB();
+  sendTelegram(`🆕 New user registered: ${email}`);
+  res.json({ ok: true });
 });
 
-// Check product stock
-app.post('/check-product', (req,res)=>{
-  const { productId, userId } = req.body;
-  const product = products.find(p=>p.id===productId);
-  if(!product) return res.status(404).json({error:"Product not found"});
+// Login
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = db.users[email];
+  if (!user) return res.status(404).json({ error: "User not found" });
 
-  if(!canAct(userId, `check-${productId}`, 2*60*1000))
-    return res.status(429).json({error:"Cooldown: wait before checking again"});
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) return res.status(401).json({ error: "Invalid password" });
 
-  product.stock = Math.max(product.stock + Math.floor(Math.random()*3),0);
-  product.lastChecked = new Date().toLocaleString();
-
-  updateTimestamp(userId, `check-${productId}`);
-  sendTelegramMessage(`User ${userId} checked "${product.name}" stock.`);
-
-  res.json({ok:true, product});
+  const token = generateToken(user.id);
+  res.cookie("token", token, { httpOnly: true, maxAge: 7 * 24 * 3600 * 1000 });
+  res.json({ ok: true, lang: user.lang });
 });
 
-// Add to favorites
-app.post('/favorite', (req,res)=>{
-  const { userId, productId } = req.body;
-  const session = getSession(userId);
-  if(!session.favorites.includes(productId)) session.favorites.push(productId);
-  res.json({ok:true, favorites: session.favorites});
+// ============ PRODUCT ROUTES ============
+
+// Get products
+app.get("/products", auth, (req, res) => {
+  const user = req.user;
+
+  // Favorites on top, then popular
+  const favs = db.products.filter((p) => user.favorites.includes(p.id));
+  const top = db.products
+    .filter((p) => !user.favorites.includes(p.id))
+    .sort((a, b) => (b.sold || 0) - (a.sold || 0));
+
+  res.json([...favs, ...top]);
 });
 
-// Remove from favorites
-app.post('/unfavorite', (req,res)=>{
-  const { userId, productId } = req.body;
-  const session = getSession(userId);
-  session.favorites = session.favorites.filter(id=>id!==productId);
-  res.json({ok:true, favorites: session.favorites});
+// Favorite toggle
+app.post("/favorite", auth, (req, res) => {
+  const { productId } = req.body;
+  const user = req.user;
+
+  if (user.favorites.includes(productId)) {
+    user.favorites = user.favorites.filter((id) => id !== productId);
+  } else {
+    user.favorites.push(productId);
+    const p = db.products.find((p) => p.id === productId);
+    if (p) p.favCount = (p.favCount || 0) + 1;
+  }
+
+  saveDB();
+  res.json({ ok: true, favorites: user.favorites });
 });
 
-// Add to cart / buy
-app.post('/buy-product', (req,res)=>{
-  const { productId, quantity, userId } = req.body;
-  const product = products.find(p=>p.id===productId);
-  if(!product) return res.status(404).json({error:"Product not found"});
-  if(quantity<=0 || quantity>product.stock) return res.status(400).json({error:"Invalid quantity"});
+// ============ CART ROUTES ============
 
-  if(!canAct(userId, `buy-${productId}`, 5000))
-    return res.status(429).json({error:"Cooldown: wait before buying again"});
+// Add to cart
+app.post("/cart/add", auth, (req, res) => {
+  const { productId, quantity } = req.body;
+  const user = req.user;
+  const product = db.products.find((p) => p.id === productId);
 
-  product.stock -= quantity;
-  product.soldCount = (product.soldCount||0) + quantity;
+  if (!product) return res.status(404).json({ error: "Product not found" });
+  if (quantity <= 0 || quantity > product.stock)
+    return res.status(400).json({ error: "Invalid quantity" });
 
-  const session = getSession(userId);
-  const existing = session.cart.find(c=>c.productId===productId);
-  if(existing) existing.quantity += quantity;
-  else session.cart.push({ productId, quantity });
+  const existing = user.cart.find((c) => c.productId === productId);
+  if (existing) existing.quantity += quantity;
+  else user.cart.push({ productId, quantity });
 
-  updateTimestamp(userId, `buy-${productId}`);
-  sendTelegramMessage(`User ${userId} bought ${quantity} x "${product.name}"`);
-
-  res.json({ok:true, product, cart: session.cart});
+  saveDB();
+  res.json({ ok: true, cart: user.cart });
 });
 
-// Get user cart
-app.get('/cart/:userId', (req,res)=>{
-  const session = getSession(req.params.userId);
-  const cart = session.cart.map(item=>{
-    const p = products.find(x=>x.id===item.productId);
-    return { name: p.name, quantity: item.quantity, price: p.price, total: p.price*item.quantity };
+// Remove from cart
+app.post("/cart/remove", auth, (req, res) => {
+  const { productId } = req.body;
+  const user = req.user;
+  user.cart = user.cart.filter((c) => c.productId !== productId);
+  saveDB();
+  res.json({ ok: true, cart: user.cart });
+});
+
+// Checkout
+app.post("/cart/checkout", auth, (req, res) => {
+  const user = req.user;
+  if (!user.cart.length) return res.status(400).json({ error: "Cart empty" });
+
+  let total = 0;
+  const summary = [];
+
+  user.cart.forEach((item) => {
+    const product = db.products.find((p) => p.id === item.productId);
+    if (!product || product.stock < item.quantity) return;
+    product.stock -= item.quantity;
+    product.sold = (product.sold || 0) + item.quantity;
+
+    const cost = item.quantity * product.price;
+    total += cost;
+    summary.push(`${item.quantity}x ${product.name} = $${cost.toFixed(2)}`);
   });
-  const total = cart.reduce((a,b)=>a+b.total,0);
-  res.json({cart, totalPrice: total});
+
+  user.cart = [];
+  saveDB();
+
+  const msg = `🛒 Purchase by ${user.id}\n\n${summary.join("\n")}\n\n💰 Total: $${total.toFixed(
+    2
+  )}`;
+  sendTelegram(msg);
+
+  res.json({ ok: true, summary, total });
 });
 
-// Get products with top 10 trending and user favorites first
-app.get('/products', (req,res)=>{
-  const userId = req.query.userId;
-  const session = getSession(userId);
-  const top10 = [...products].sort((a,b)=> (b.soldCount||0) - (a.soldCount||0)).slice(0,10);
-  const favorites = session.favorites.map(id=>products.find(p=>p.id===id)).filter(Boolean);
-  const remaining = products.filter(p => !favorites.includes(p) && !top10.includes(p))
-                            .sort((a,b)=> (b.soldCount||0) - (a.soldCount||0));
-  const finalList = [...favorites, ...top10.filter(p=>!favorites.includes(p)), ...remaining];
-  res.json(finalList);
+// Get cart
+app.get("/cart", auth, (req, res) => {
+  const user = req.user;
+  const details = user.cart.map((item) => {
+    const p = db.products.find((pr) => pr.id === item.productId);
+    return {
+      name: p.name,
+      price: p.price,
+      quantity: item.quantity,
+      total: p.price * item.quantity,
+    };
+  });
+  res.json({ cart: details, total: details.reduce((a, b) => a + b.total, 0) });
 });
 
-// Bug report
-app.post('/report-bug', (req,res)=>{
-  const { userId, message } = req.body;
-  sendTelegramMessage(`Bug report from ${userId}: ${message}`);
-  res.json({ok:true});
+// ============ BUG REPORTS ============
+app.post("/bug", auth, (req, res) => {
+  const { message } = req.body;
+  sendTelegram(`🐞 Bug report from ${req.user.id}: ${message}`);
+  res.json({ ok: true });
 });
 
-// Periodically save products
-setInterval(()=>{
-  const data = "module.exports = " + JSON.stringify(products,null,2);
-  fs.writeFileSync(path.join(__dirname,'products.js'), data);
-  console.log("Products saved!");
-},60000);
+// Save every minute
+setInterval(saveDB, 60000);
 
 // Start server
-app.listen(PORT, ()=>console.log(`Ühishanke Ultimate App running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Professional Shop Server running at http://localhost:${PORT}`)
+);
