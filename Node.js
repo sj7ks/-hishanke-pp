@@ -1,22 +1,15 @@
-// save this as notifyTest.js
-const axios = require("axios");
-
-// Bot token and mom's chat ID
-const botToken = "7837080864:AAERfFlMoUusexk1jWKh3XNNaeNgGGJrKR4";
-const chatId = "6668468597"; // mom's chat ID
-
-async function notifyMom(message) {
-  try {
-    await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      chat_id: chatId,
-      text: message,
-      parse_mode: "Markdown" // optional, allows bold/italic
-    });
-    console.log("Message sent!");
-  } catch (err) {
-    console.error("Telegram error:", err.response?.data || err.message);
+{
+  "name": "uhishanke-app",
+  "version": "1.0.0",
+  "description": "Ühishanke - Ultimate ordering app for small groups",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Christofer Robin Münz",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
   }
 }
-
-// Test message
-notifyMom("✅ This is a test message from your Ühishanke app!");
