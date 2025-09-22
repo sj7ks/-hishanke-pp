@@ -102,4 +102,5 @@ module.exports = [
   {id:98, name:"Protein Bar", price:2.5, stock:70, maxStock:150, lastChecked:"2025-09-22 12:00", image:"https://via.placeholder.com/150?text=Protein+Bar"},
   {id:99, name:"Energy Drink 500ml", price:3.0, stock:50, maxStock:100, lastChecked:"2025-09-22 12:00", image:"https://via.placeholder.com/150?text=Energy+Drink"},
   {id:100, name:"Trail Mix 200g", price:4.0, stock:40, maxStock:80, lastChecked:"2025-09-22 12:00", image:"https://via.placeholder.com/150?text=Trail+Mix"}
-];
+<script src="products.js"></script>
+<script src="app.js"></script>];
