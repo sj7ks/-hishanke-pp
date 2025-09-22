@@ -1,11 +1,10 @@
-/* ==============================
-   Global Styles
-============================== */
+/* Global */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease-in-out;
 }
 
 html, body {
@@ -15,26 +14,19 @@ html, body {
     line-height: 1.6;
 }
 
-/* ==============================
-   Header
-============================== */
+/* Header */
 header {
-    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    background: linear-gradient(90deg,#2563eb,#3b82f6);
     color: #fff;
     text-align: center;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    padding: 2rem 0;
-    letter-spacing: 1px;
+    padding: 1.5rem 0;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    letter-spacing: 1px;
 }
 
-/* ==============================
-   Top Bar
-============================== */
+/* Top Bar */
 .top-bar {
     display: flex;
     flex-wrap: wrap;
@@ -50,85 +42,66 @@ header {
     border-radius: 12px;
     border: 1px solid #cbd5e1;
     font-size: 1rem;
-    transition: all 0.3s ease;
 }
 
-.top-bar input[type="text"]:focus {
+.top-bar input[type="text"]:focus, .top-bar select:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(59,130,246,0.4);
+    box-shadow: 0 0 5px rgba(59,130,246,0.5);
 }
 
-.top-bar select:hover {
-    border-color: #3b82f6;
-}
-
-/* ==============================
-   Top 10 Horizontal Scroll
-============================== */
-.top-10-container {
+/* Top 10 Horizontal Scroll */
+.top10-container {
     display: flex;
     overflow-x: auto;
-    gap: 1rem;
     padding: 1rem 2rem;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: #3b82f6 #e5e7eb;
+    gap: 1rem;
+    scroll-snap-type: x mandatory;
 }
 
-.top-10-container::-webkit-scrollbar {
+.top10-container::-webkit-scrollbar {
     height: 10px;
 }
 
-.top-10-container::-webkit-scrollbar-thumb {
-    background-color: #3b82f6;
-    border-radius: 5px;
+.top10-container::-webkit-scrollbar-thumb {
+    background: #3b82f6;
+    border-radius: 10px;
 }
 
-.top-10-container::-webkit-scrollbar-track {
-    background: #e5e7eb;
-}
-
-/* ==============================
-   Products Grid
-============================== */
+/* Product Cards */
 .products-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
     gap: 2rem;
     padding: 2rem;
     max-width: 1500px;
     margin: auto;
 }
 
-/* ==============================
-   Product Card
-============================== */
 .product-card {
     background: #fff;
     border-radius: 20px;
     padding: 1.5rem 1.2rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
-    cursor: pointer;
 }
 
 .product-card:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-8px);
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
 .product-card img {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 15px;
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border-radius: 12px;
     margin-bottom: 1rem;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
 }
 
 .product-card:hover img {
@@ -141,19 +114,17 @@ header {
     margin: 0.5rem 0;
     text-align: center;
     color: #10b981;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .product-card p {
+    margin: 0.2rem 0;
     font-size: 0.95rem;
     text-align: center;
-    margin: 0.2rem 0;
     color: #374151;
 }
 
-/* ==============================
-   Quantity & Buttons
-============================== */
+/* Quantity */
 .quantity-container {
     display: flex;
     align-items: center;
@@ -165,10 +136,9 @@ header {
     width: 60px;
     padding: 6px;
     border: 1px solid #cbd5e1;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 0.95rem;
     text-align: center;
-    transition: all 0.3s ease;
 }
 
 .quantity-input:focus {
@@ -176,76 +146,78 @@ header {
     border-color: #3b82f6;
 }
 
+/* Buttons */
 .product-buttons {
     display: flex;
     gap: 0.5rem;
     margin-top: 0.7rem;
 }
 
-.check-btn, .buy-btn {
-    padding: 0.55rem 1.2rem;
+.check-btn, .buy-btn, .add-cart-btn {
+    padding: 0.55rem 1rem;
     border: none;
     border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 75px;
     font-size: 0.95rem;
-    transition: all 0.3s ease;
 }
 
-.check-btn {
-    background: #3b82f6;
-    color: #fff;
-}
+.check-btn { background: #3b82f6; color: #fff; }
+.check-btn:hover { background: #2563eb; }
 
-.check-btn:hover {
-    background: #2563eb;
-}
+.buy-btn { background: #10b981; color: #fff; }
+.buy-btn:hover { background: #059669; }
 
-.buy-btn {
-    background: #10b981;
-    color: #fff;
-}
+.add-cart-btn { background: #f59e0b; color: #fff; }
+.add-cart-btn:hover { background: #d97706; }
 
-.buy-btn:hover {
-    background: #059669;
-}
+.disabled { background: #94a3b8 !important; cursor: not-allowed; opacity: 0.7; }
 
-.disabled {
-    background: #94a3b8 !important;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* ==============================
-   Stock Info
-============================== */
-.stock-info {
+/* Stock Bar */
+.stock-container {
     width: 100%;
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-    text-align: center;
+    margin: 6px 0;
 }
 
-.stock-info span {
+.stock-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.stock-bar {
+    height: 12px;
+    border-radius: 6px;
+    background: #10b981;
+    width: 0%;
+    transition: width 0.5s ease, background 0.5s ease;
+}
+
+.no-stock {
+    color: red;
     font-weight: 700;
 }
 
-.stock-available {
-    color: #10b981;
+/* Favorites */
+.fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #f43f5e;
 }
 
-.stock-unavailable {
-    color: #ef4444;
-}
-
-/* ==============================
-   Notification
-============================== */
+/* Notification */
 .notification {
     position: fixed;
     top: 15px;
     right: 15px;
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    background: linear-gradient(135deg,#2563eb,#3b82f6);
     color: #fff;
     padding: 1rem 1.5rem;
     border-radius: 16px;
@@ -261,9 +233,7 @@ header {
     to {opacity:1; transform: translateY(0);}
 }
 
-/* ==============================
-   Footer
-============================== */
+/* Footer */
 footer {
     text-align: center;
     padding: 1.5rem;
@@ -272,19 +242,9 @@ footer {
     margin-top: 3rem;
 }
 
-/* ==============================
-   Responsive
-============================== */
-@media (max-width: 768px){
-    .top-bar {
-        flex-direction: column;
-        gap: 0.8rem;
-    }
-    .product-card img {
-        width: 120px;
-        height: 120px;
-    }
-    .quantity-input {
-        width: 50px;
-    }
+/* Responsive */
+@media(max-width:768px){
+    .top-bar { flex-direction: column; gap:0.8rem; }
+    .product-card img { width:120px; height:120px; }
+    .quantity-input { width:50px; }
 }
