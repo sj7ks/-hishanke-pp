@@ -1,53 +1,114 @@
-// products.js - placeholder products for Ühishanke app
-module.exports = [
-  { id: 1, name: "Product 1", price: 5.99, stock: 10, image: "Add image", soldCount: 0 },
-  { id: 2, name: "Product 2", price: 7.49, stock: 15, image: "Add image", soldCount: 0 },
-  { id: 3, name: "Product 3", price: 6.25, stock: 8, image: "Add image", soldCount: 0 },
-  { id: 4, name: "Product 4", price: 9.99, stock: 20, image: "Add image", soldCount: 0 },
-  { id: 5, name: "Product 5", price: 12.50, stock: 5, image: "Add image", soldCount: 0 },
-  { id: 6, name: "Product 6", price: 3.75, stock: 30, image: "Add image", soldCount: 0 },
-  { id: 7, name: "Product 7", price: 4.99, stock: 12, image: "Add image", soldCount: 0 },
-  { id: 8, name: "Product 8", price: 8.20, stock: 7, image: "Add image", soldCount: 0 },
-  { id: 9, name: "Product 9", price: 11.00, stock: 18, image: "Add image", soldCount: 0 },
-  { id: 10, name: "Product 10", price: 6.80, stock: 22, image: "Add image", soldCount: 0 },
-  { id: 11, name: "Product 11", price: 5.50, stock: 14, image: "Add image", soldCount: 0 },
-  { id: 12, name: "Product 12", price: 9.75, stock: 6, image: "Add image", soldCount: 0 },
-  { id: 13, name: "Product 13", price: 7.20, stock: 10, image: "Add image", soldCount: 0 },
-  { id: 14, name: "Product 14", price: 4.10, stock: 25, image: "Add image", soldCount: 0 },
-  { id: 15, name: "Product 15", price: 3.99, stock: 19, image: "Add image", soldCount: 0 },
-  { id: 16, name: "Product 16", price: 8.45, stock: 13, image: "Add image", soldCount: 0 },
-  { id: 17, name: "Product 17", price: 12.00, stock: 9, image: "Add image", soldCount: 0 },
-  { id: 18, name: "Product 18", price: 6.50, stock: 16, image: "Add image", soldCount: 0 },
-  { id: 19, name: "Product 19", price: 5.25, stock: 20, image: "Add image", soldCount: 0 },
-  { id: 20, name: "Product 20", price: 7.99, stock: 11, image: "Add image", soldCount: 0 },
-  { id: 21, name: "Product 21", price: 9.50, stock: 8, image: "Add image", soldCount: 0 },
-  { id: 22, name: "Product 22", price: 10.25, stock: 14, image: "Add image", soldCount: 0 },
-  { id: 23, name: "Product 23", price: 6.70, stock: 22, image: "Add image", soldCount: 0 },
-  { id: 24, name: "Product 24", price: 4.50, stock: 30, image: "Add image", soldCount: 0 },
-  { id: 25, name: "Product 25", price: 8.99, stock: 9, image: "Add image", soldCount: 0 },
-  { id: 26, name: "Product 26", price: 5.80, stock: 17, image: "Add image", soldCount: 0 },
-  { id: 27, name: "Product 27", price: 7.45, stock: 12, image: "Add image", soldCount: 0 },
-  { id: 28, name: "Product 28", price: 9.20, stock: 6, image: "Add image", soldCount: 0 },
-  { id: 29, name: "Product 29", price: 6.00, stock: 10, image: "Add image", soldCount: 0 },
-  { id: 30, name: "Product 30", price: 11.50, stock: 5, image: "Add image", soldCount: 0 },
-  { id: 31, name: "Product 31", price: 4.75, stock: 20, image: "Add image", soldCount: 0 },
-  { id: 32, name: "Product 32", price: 8.00, stock: 15, image: "Add image", soldCount: 0 },
-  { id: 33, name: "Product 33", price: 3.99, stock: 25, image: "Add image", soldCount: 0 },
-  { id: 34, name: "Product 34", price: 6.45, stock: 12, image: "Add image", soldCount: 0 },
-  { id: 35, name: "Product 35", price: 7.99, stock: 18, image: "Add image", soldCount: 0 },
-  { id: 36, name: "Product 36", price: 5.60, stock: 22, image: "Add image", soldCount: 0 },
-  { id: 37, name: "Product 37", price: 9.75, stock: 7, image: "Add image", soldCount: 0 },
-  { id: 38, name: "Product 38", price: 6.30, stock: 16, image: "Add image", soldCount: 0 },
-  { id: 39, name: "Product 39", price: 8.10, stock: 10, image: "Add image", soldCount: 0 },
-  { id: 40, name: "Product 40", price: 4.50, stock: 20, image: "Add image", soldCount: 0 },
-  { id: 41, name: "Product 41", price: 7.00, stock: 14, image: "Add image", soldCount: 0 },
-  { id: 42, name: "Product 42", price: 5.25, stock: 12, image: "Add image", soldCount: 0 },
-  { id: 43, name: "Product 43", price: 9.99, stock: 6, image: "Add image", soldCount: 0 },
-  { id: 44, name: "Product 44", price: 6.50, stock: 18, image: "Add image", soldCount: 0 },
-  { id: 45, name: "Product 45", price: 8.20, stock: 20, image: "Add image", soldCount: 0 },
-  { id: 46, name: "Product 46", price: 5.80, stock: 15, image: "Add image", soldCount: 0 },
-  { id: 47, name: "Product 47", price: 7.99, stock: 10, image: "Add image", soldCount: 0 },
-  { id: 48, name: "Product 48", price: 4.60, stock: 25, image: "Add image", soldCount: 0 },
-  { id: 49, name: "Product 49", price: 9.50, stock: 12, image: "Add image", soldCount: 0 },
-  { id: 50, name: "Product 50", price: 6.75, stock: 14, image: "Add image", soldCount: 0 },
+// products.js
+
+const products = [
+  {
+    id: 1,
+    name: "Cocoa Powder",
+    price: 4.99,
+    stock: 25,
+    soldCount: 120,
+    image: "add image",
+    description: "Rich organic cocoa powder perfect for baking or hot chocolate."
+  },
+  {
+    id: 2,
+    name: "Whole Wheat Bread",
+    price: 2.50,
+    stock: 80,
+    soldCount: 300,
+    image: "add image",
+    description: "Freshly baked bread made with 100% whole wheat flour."
+  },
+  {
+    id: 3,
+    name: "Olive Oil (1L)",
+    price: 7.99,
+    stock: 40,
+    soldCount: 210,
+    image: "add image",
+    description: "Extra virgin olive oil imported from Spain."
+  },
+  {
+    id: 4,
+    name: "Cheddar Cheese",
+    price: 5.75,
+    stock: 0,
+    soldCount: 180,
+    image: "add image",
+    description: "Aged cheddar cheese with a sharp and creamy flavor."
+  },
+  {
+    id: 5,
+    name: "Bananas (1kg)",
+    price: 1.99,
+    stock: 100,
+    soldCount: 450,
+    image: "add image",
+    description: "Fresh ripe bananas, perfect for smoothies or snacking."
+  },
+  {
+    id: 6,
+    name: "Coffee Beans (500g)",
+    price: 8.99,
+    stock: 35,
+    soldCount: 260,
+    image: "add image",
+    description: "Premium roasted coffee beans with a strong aroma."
+  },
+  {
+    id: 7,
+    name: "Tomatoes (1kg)",
+    price: 2.20,
+    stock: 50,
+    soldCount: 320,
+    image: "add image",
+    description: "Fresh red tomatoes, perfect for salads or cooking."
+  },
+  {
+    id: 8,
+    name: "Mineral Water (6-pack)",
+    price: 3.99,
+    stock: 60,
+    soldCount: 150,
+    image: "add image",
+    description: "Natural mineral water bottled at the source."
+  },
+  {
+    id: 9,
+    name: "Pasta (500g)",
+    price: 1.50,
+    stock: 120,
+    soldCount: 390,
+    image: "add image",
+    description: "Durum wheat pasta that cooks perfectly al dente."
+  },
+  {
+    id: 10,
+    name: "Milk (1L)",
+    price: 1.20,
+    stock: 75,
+    soldCount: 280,
+    image: "add image",
+    description: "Fresh whole milk from local farms."
+  },
+  {
+    id: 11,
+    name: "Apples (1kg)",
+    price: 2.10,
+    stock: 90,
+    soldCount: 410,
+    image: "add image",
+    description: "Crisp and sweet seasonal apples."
+  },
+  {
+    id: 12,
+    name: "Eggs (12-pack)",
+    price: 3.20,
+    stock: 70,
+    soldCount: 340,
+    image: "add image",
+    description: "Free-range eggs, rich in flavor and nutrition."
+  }
 ];
+
+module.exports = products;
