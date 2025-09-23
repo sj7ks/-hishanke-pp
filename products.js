@@ -1,55 +1,80 @@
-// products.js - God Level Product List
+// products.js
+// Central product catalog
+// Each product matches an image inside /images folder
+
 const products = [
-  { id: 1, name: "Red Apple", price: 1.2, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 2, name: "Banana", price: 0.8, stock: 100, soldCount: 0, image: "add_image_here" },
-  { id: 3, name: "Orange", price: 1.0, stock: 80, soldCount: 0, image: "add_image_here" },
-  { id: 4, name: "Strawberry Pack", price: 2.5, stock: 40, soldCount: 0, image: "add_image_here" },
-  { id: 5, name: "Blueberry Pack", price: 3.0, stock: 35, soldCount: 0, image: "add_image_here" },
-  { id: 6, name: "Grapes", price: 2.0, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 7, name: "Pineapple", price: 3.5, stock: 25, soldCount: 0, image: "add_image_here" },
-  { id: 8, name: "Mango", price: 2.8, stock: 30, soldCount: 0, image: "add_image_here" },
-  { id: 9, name: "Watermelon", price: 4.0, stock: 15, soldCount: 0, image: "add_image_here" },
-  { id: 10, name: "Lemon", price: 0.5, stock: 100, soldCount: 0, image: "add_image_here" },
-  { id: 11, name: "Carrot", price: 0.7, stock: 120, soldCount: 0, image: "add_image_here" },
-  { id: 12, name: "Cucumber", price: 0.9, stock: 80, soldCount: 0, image: "add_image_here" },
-  { id: 13, name: "Tomato", price: 1.1, stock: 90, soldCount: 0, image: "add_image_here" },
-  { id: 14, name: "Potato", price: 0.6, stock: 150, soldCount: 0, image: "add_image_here" },
-  { id: 15, name: "Onion", price: 0.5, stock: 130, soldCount: 0, image: "add_image_here" },
-  { id: 16, name: "Garlic", price: 1.5, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 17, name: "Broccoli", price: 2.0, stock: 40, soldCount: 0, image: "add_image_here" },
-  { id: 18, name: "Spinach Pack", price: 1.8, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 19, name: "Cabbage", price: 1.2, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 20, name: "Lettuce", price: 1.0, stock: 70, soldCount: 0, image: "add_image_here" },
-  { id: 21, name: "Milk 1L", price: 1.5, stock: 80, soldCount: 0, image: "add_image_here" },
-  { id: 22, name: "Cheddar Cheese 200g", price: 3.0, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 23, name: "Yogurt 500g", price: 2.2, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 24, name: "Butter 250g", price: 2.5, stock: 40, soldCount: 0, image: "add_image_here" },
-  { id: 25, name: "Eggs 12pcs", price: 2.0, stock: 70, soldCount: 0, image: "add_image_here" },
-  { id: 26, name: "Bread Loaf", price: 1.5, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 27, name: "Croissant", price: 1.2, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 28, name: "Bagel", price: 1.0, stock: 70, soldCount: 0, image: "add_image_here" },
-  { id: 29, name: "Rice 1kg", price: 2.0, stock: 80, soldCount: 0, image: "add_image_here" },
-  { id: 30, name: "Pasta 500g", price: 1.5, stock: 90, soldCount: 0, image: "add_image_here" },
-  { id: 31, name: "Olive Oil 500ml", price: 5.0, stock: 30, soldCount: 0, image: "add_image_here" },
-  { id: 32, name: "Tomato Sauce 300g", price: 1.8, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 33, name: "Ketchup 500g", price: 2.0, stock: 70, soldCount: 0, image: "add_image_here" },
-  { id: 34, name: "Mustard 250g", price: 1.5, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 35, name: "Chicken Breast 1kg", price: 8.0, stock: 30, soldCount: 0, image: "add_image_here" },
-  { id: 36, name: "Salmon Fillet 500g", price: 12.0, stock: 20, soldCount: 0, image: "add_image_here" },
-  { id: 37, name: "Beef Steak 1kg", price: 10.0, stock: 25, soldCount: 0, image: "add_image_here" },
-  { id: 38, name: "Pork Chop 1kg", price: 9.0, stock: 30, soldCount: 0, image: "add_image_here" },
-  { id: 39, name: "Tuna Can 200g", price: 2.5, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 40, name: "Cereal Pack 500g", price: 3.5, stock: 40, soldCount: 0, image: "add_image_here" },
-  { id: 41, name: "Oatmeal 1kg", price: 2.5, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 42, name: "Chocolate Bar", price: 1.2, stock: 80, soldCount: 0, image: "add_image_here" },
-  { id: 43, name: "Cookie Pack", price: 2.0, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 44, name: "Chips Bag", price: 1.5, stock: 70, soldCount: 0, image: "add_image_here" },
-  { id: 45, name: "Soda Can", price: 1.0, stock: 100, soldCount: 0, image: "add_image_here" },
-  { id: 46, name: "Juice 1L", price: 2.0, stock: 60, soldCount: 0, image: "add_image_here" },
-  { id: 47, name: "Coffee 250g", price: 4.0, stock: 40, soldCount: 0, image: "add_image_here" },
-  { id: 48, name: "Tea Box 20pcs", price: 3.0, stock: 50, soldCount: 0, image: "add_image_here" },
-  { id: 49, name: "Honey 500g", price: 5.0, stock: 30, soldCount: 0, image: "add_image_here" },
-  { id: 50, name: "Jam 500g", price: 3.5, stock: 40, soldCount: 0, image: "add_image_here" }
+  {
+    id: 1,
+    name: "Amaizin coco crispy rolls original org. 6x140g",
+    price: 12.99,
+    stock: 25,
+    soldCount: 230,
+    favorites: 18,
+    image: "images/Amaizin coco crispy rolls original org. 6x140g.jpg"
+  },
+  {
+    id: 2,
+    name: "Amaizin Organic Crispy Chili oil 6x170g",
+    price: 9.49,
+    stock: 40,
+    soldCount: 315,
+    favorites: 27,
+    image: "images/Amaizin Organic Crispy Chili oil 6x170g.jpg"
+  },
+  {
+    id: 3,
+    name: "Amaizin Tomato corn rolls org. 14x100g",
+    price: 15.75,
+    stock: 18,
+    soldCount: 120,
+    favorites: 11,
+    image: "images/Amaizin Tomato corn rolls org. 14x100g.png"
+  },
+  {
+    id: 4,
+    name: "Cherries sour dried org. 10kg",
+    price: 89.00,
+    stock: 5,
+    soldCount: 52,
+    favorites: 6,
+    image: "images/Cherries sour dried org. 10kg.png"
+  },
+  {
+    id: 5,
+    name: "Cocoa mass org. 25kg",
+    price: 199.99,
+    stock: 8,
+    soldCount: 76,
+    favorites: 14,
+    image: "images/Cocoa mass org. 25kg.png"
+  },
+  {
+    id: 6,
+    name: "Coconut Sugar 14-16 Mesh GF org. 25kg",
+    price: 145.50,
+    stock: 12,
+    soldCount: 64,
+    favorites: 9,
+    image: "images/Coconut Sugar 14-16 Mesh GF org. 25kg.png"
+  },
+  {
+    id: 7,
+    name: "Flax seed brown org. 25kg",
+    price: 59.90,
+    stock: 20,
+    soldCount: 142,
+    favorites: 22,
+    image: "images/Flax seed brown org. 25kg.png"
+  },
+  {
+    id: 8,
+    name: "La Bio Idea Orzo Turmeric&Black Pepper org 6x400g",
+    price: 24.30,
+    stock: 30,
+    soldCount: 188,
+    favorites: 31,
+    image: "images/La Bio Idea Orzo Turmeric&Black Pepper org 6x400g.png"
+  }
 ];
 
 module.exports = products;
