@@ -1,77 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultimate Shopping App</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Shop</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<header>Super Shop</header>
 
-  <!-- HEADER -->
-  <header>
-    🛍️ Ultimate Shopping App
-  </header>
+<div class="top-bar">
+  <input type="text" id="search" placeholder="Search products...">
+  <select id="sort">
+    <option value="popular">Most Popular</option>
+    <option value="price-low">Price Low-High</option>
+    <option value="price-high">Price High-Low</option>
+  </select>
+</div>
 
-  <!-- TOP BAR -->
-  <div class="top-bar">
-    <input type="text" placeholder="Search products..." id="search-input">
-    <select id="lang-select">
-      <option value="en">English</option>
-      <option value="et">Estonian</option>
-      <option value="ru">Russian</option>
-    </select>
-    <div id="auth-buttons">
-      <button onclick="showLogin()">Login</button>
-      <button onclick="showRegister()">Register</button>
-    </div>
-  </div>
+<div class="top-scroller" id="top-faved"></div>
+<div class="products-container" id="products"></div>
 
-  <!-- CART ICON -->
-  <div id="cart-icon">🛒</div>
-  <div class="cart-dropdown"></div>
+<div id="cart-icon">🛒</div>
+<div class="cart-dropdown" id="cart"></div>
 
-  <!-- TOP SCROLLER -->
-  <div class="top-scroller"></div>
-
-  <!-- PRODUCTS CONTAINER -->
-  <div class="products-container"></div>
-
-  <!-- LOGIN MODAL -->
-  <div id="login-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('login-modal')">&times;</span>
-      <h2>Login</h2>
-      <input type="email" id="login-email" placeholder="Email">
-      <input type="password" id="login-password" placeholder="Password">
-      <button onclick="performLogin()">Login</button>
-    </div>
-  </div>
-
-  <!-- REGISTER MODAL -->
-  <div id="register-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('register-modal')">&times;</span>
-      <h2>Register</h2>
-      <input type="email" id="register-email" placeholder="Email">
-      <input type="password" id="register-password" placeholder="Password">
-      <button onclick="performRegister()">Register</button>
-    </div>
-  </div>
-
-  <!-- BUG REPORT MODAL -->
-  <div id="bug-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal('bug-modal')">&times;</span>
-      <h2>Report a Bug</h2>
-      <textarea id="bug-message" placeholder="Describe the bug..."></textarea>
-      <button onclick="submitBug()">Submit</button>
-    </div>
-  </div>
-
-  <!-- NOTIFICATION -->
-  <div class="notification"></div>
-
-  <script src="client.js"></script>
+<div class="notification" id="notification"></div>
+<script src="client.js"></script>
 </body>
 </html>
