@@ -1,186 +1,125 @@
-// app.js - Ühishanke Ultimate God-Level Backend
-require('dotenv').config();
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const bodyParser = require('body-parser');
+// app.js - God Level Backend
+require("dotenv").config();
+const express = require("express");
+const session = require("express-session");
+const fetch = require("node-fetch");
+const products = require("./products");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Load products
-let products = require('./products.js'); // Must be array with 50+ products
-
-// Users & sessions
-const userSessions = {}; // { userId: { cart: [], favorites: [], lastActions: {} } }
-
 // Middleware
-app.use(express.static(__dirname));
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
-// Logger helper
-function log(msg, type = 'info'){
-  const colors = { info: '\x1b[36m', warn: '\x1b[33m', error: '\x1b[31m', reset: '\x1b[0m' };
-  console.log(`${colors[type] || colors.info}[${new Date().toLocaleTimeString()}] ${msg}${colors.reset}`);
+app.use(session({
+    secret: process.env.SESSION_SECRET || "supersecret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // use true with HTTPS
+}));
+
+// ===== USERS (simple mock auth for demo) =====
+const users = [
+    { id: 1, username: "admin", password: "admin123" },
+    { id: 2, username: "user", password: "password" }
+];
+
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+    req.session.userId = user.id;
+    res.json({ success: true, user: { id: user.id, username: user.username } });
+});
+
+app.post("/logout", (req, res) => {
+    req.session.destroy();
+    res.json({ success: true });
+});
+
+// Middleware check login
+function requireLogin(req, res, next) {
+    if (!req.session.userId) return res.status(401).json({ error: "Not logged in" });
+    next();
 }
 
-// Session utils
-function getSession(userId){
-  if(!userSessions[userId]) userSessions[userId] = { cart: [], favorites: [], lastActions: {} };
-  return userSessions[userId];
-}
-function canAct(userId, actionKey, cooldownMs){
-  const session = getSession(userId);
-  return (Date.now() - (session.lastActions[actionKey] || 0)) > cooldownMs;
-}
-function updateAction(userId, actionKey){
-  const session = getSession(userId);
-  session.lastActions[actionKey] = Date.now();
-}
-
-// Telegram notifier
-async function notifyTelegram(message){
-  if(!process.env.TELEGRAM_TOKEN || !process.env.MOM_CHAT_ID) return;
-  try{
-    await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
-      chat_id: process.env.MOM_CHAT_ID,
-      text: message
-    });
-  } catch(e){
-    log(`Telegram error: ${e.message}`, 'warn');
-  }
-}
-
-// API Endpoints
-
-// Check product
-app.post('/check-product', async (req,res)=>{
-  try{
-    const { productId, userId } = req.body;
-    const product = products.find(p=>p.id===productId);
-    if(!product) return res.status(404).json({error:"Product not found"});
-
-    if(!canAct(userId, `check-${productId}`, 120000)) 
-      return res.status(429).json({error:"Cooldown: wait before checking again"});
-
-    // simulate stock fluctuation
-    product.stock = Math.max(product.stock + Math.floor(Math.random()*3),0);
-    product.lastChecked = new Date().toLocaleString();
-
-    updateAction(userId, `check-${productId}`);
-    await notifyTelegram(`User ${userId} checked "${product.name}" stock.`);
-    log(`User ${userId} checked ${product.name}`);
-
-    res.json({ok:true, product});
-  } catch(e){
-    log(`Check error: ${e.message}`, 'error');
-    res.status(500).json({error:e.message});
-  }
+// ===== PRODUCTS =====
+app.get("/products", (req, res) => {
+    res.json(products);
 });
 
-// Buy product
-app.post('/buy-product', async (req,res)=>{
-  try{
-    const { productId, quantity, userId } = req.body;
-    const product = products.find(p=>p.id===productId);
-    if(!product) return res.status(404).json({error:"Product not found"});
-    if(quantity<=0 || quantity>product.stock) return res.status(400).json({error:"Invalid quantity"});
-
-    if(!canAct(userId, `buy-${productId}`, 5000))
-      return res.status(429).json({error:"Cooldown: wait before buying again"});
-
-    product.stock -= quantity;
-    product.soldCount = (product.soldCount||0) + quantity;
-
-    const session = getSession(userId);
-    const existing = session.cart.find(c=>c.productId===productId);
-    if(existing) existing.quantity += quantity;
-    else session.cart.push({ productId, quantity });
-
-    updateAction(userId, `buy-${productId}`);
-    await notifyTelegram(`User ${userId} bought ${quantity} x "${product.name}"`);
-    log(`User ${userId} bought ${quantity} x ${product.name}`);
-
-    res.json({ok:true, product, cart: session.cart});
-  } catch(e){
-    log(`Buy error: ${e.message}`, 'error');
-    res.status(500).json({error:e.message});
-  }
+// ===== CART =====
+app.get("/cart", requireLogin, (req, res) => {
+    res.json(req.session.cart || []);
 });
 
-// Get cart
-app.get('/cart/:userId', (req,res)=>{
-  try{
-    const session = getSession(req.params.userId);
-    const cart = session.cart.map(item=>{
-      const prod = products.find(p=>p.id===item.productId);
-      return { name: prod.name, quantity:item.quantity, price:prod.price, total:prod.price*item.quantity };
-    });
-    const totalPrice = cart.reduce((a,b)=>a+b.total,0);
-    res.json({cart, totalPrice});
-  } catch(e){
-    log(`Cart error: ${e.message}`, 'error');
-    res.status(500).json({error:e.message});
-  }
+app.post("/cart", requireLogin, (req, res) => {
+    const { productId, qty } = req.body;
+    if (!req.session.cart) req.session.cart = [];
+
+    const existing = req.session.cart.find(item => item.productId === productId);
+    if (existing) existing.qty += qty;
+    else req.session.cart.push({ productId, qty });
+
+    res.json({ success: true, cart: req.session.cart });
 });
 
-// Get all products with favorites & top-sold sorting
-app.get('/products', (req,res)=>{
-  try{
-    const { userId } = req.query;
-    const session = getSession(userId || 'guest');
-
-    // Top favorites first
-    const favs = products.filter(p => session.favorites.includes(p.id));
-
-    // Top sold globally
-    const topSold = products.filter(p => !favs.includes(p))
-                            .sort((a,b)=> (b.soldCount||0) - (a.soldCount||0))
-                            .slice(0,10);
-
-    const remaining = products.filter(p => !favs.includes(p) && !topSold.includes(p));
-
-    const finalList = [...favs, ...topSold, ...remaining];
-
-    res.json(finalList);
-  } catch(e){
-    log(`Products error: ${e.message}`, 'error');
-    res.status(500).json({error:e.message});
-  }
+// ===== FAVORITES =====
+app.get("/favorites", requireLogin, (req, res) => {
+    res.json(req.session.favorites || []);
 });
 
-// Favorite/unfavorite
-app.post('/favorite', (req,res)=>{
-  try{
-    const { userId, productId } = req.body;
-    const session = getSession(userId);
-    const index = session.favorites.indexOf(productId);
-    if(index===-1) session.favorites.push(productId);
-    else session.favorites.splice(index,1);
-    res.json({favorites: session.favorites});
-  } catch(e){
-    log(`Favorite error: ${e.message}`, 'error');
-    res.status(500).json({error:e.message});
-  }
+app.post("/favorites", requireLogin, (req, res) => {
+    const { productId } = req.body;
+    if (!req.session.favorites) req.session.favorites = [];
+
+    if (req.session.favorites.includes(productId)) {
+        req.session.favorites = req.session.favorites.filter(id => id !== productId);
+    } else {
+        req.session.favorites.push(productId);
+    }
+
+    res.json({ success: true, favorites: req.session.favorites });
 });
 
-// Save products periodically
-setInterval(()=>{
-  try{
-    const data = "module.exports = "+JSON.stringify(products,null,2);
-    fs.writeFile(path.join(__dirname,'products.js'), data, err=>{
-      if(err) log(`Failed saving products: ${err.message}`, 'error');
-      else log("Products saved successfully!",'info');
-    });
-  } catch(e){ log(`Save interval error: ${e.message}`, 'error'); }
-},60000);
+// ===== CHECKOUT (with Telegram notification) =====
+app.post("/checkout", requireLogin, async (req, res) => {
+    const cart = req.session.cart || [];
+    if (cart.length === 0) return res.status(400).json({ error: "Cart empty" });
 
-// Global error handling
-app.use((err, req, res, next)=>{
-  log(`Unhandled error: ${err.message}`, 'error');
-  res.status(500).json({error: err.message});
+    const orderSummary = cart.map(item => {
+        const p = products.find(prod => prod.id === item.productId);
+        return `${p.name} x${item.qty} = $${(p.price * item.qty).toFixed(2)}`;
+    }).join("\n");
+
+    const total = cart.reduce((sum, item) => {
+        const p = products.find(prod => prod.id === item.productId);
+        return sum + (p.price * item.qty);
+    }, 0);
+
+    // Send Telegram notification
+    try {
+        await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: process.env.TELEGRAM_CHAT_ID,
+                text: `🛒 New Order:\n\n${orderSummary}\n\nTotal: $${total.toFixed(2)}`
+            })
+        });
+    } catch (err) {
+        console.error("Telegram Error:", err);
+    }
+
+    req.session.cart = []; // clear cart after checkout
+    res.json({ success: true, message: "Checkout complete, order sent!" });
 });
 
-// Start server
-app.listen(PORT, ()=>log(`Ühishanke Ultimate God-Level Server running on port ${PORT}`, 'info'));
+// ===== START SERVER =====
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
