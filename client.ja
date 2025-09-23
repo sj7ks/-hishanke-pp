@@ -1,263 +1,170 @@
-// client.js - GOD LEVEL FRONTEND
-// Handles products, cart, favorites, top lists, login/register, bug reports, multi-language support
+// client.js - God Level Frontend Logic
 
-const API_BASE = ''; // backend root
-let userId = null;
-let token = null;
+const productsContainer = document.getElementById("products");
+const topFavedContainer = document.getElementById("top-faved");
+const cartIcon = document.getElementById("cart-icon");
+const cartDropdown = document.getElementById("cart");
+const notification = document.getElementById("notification");
+
 let products = [];
 let cart = [];
 let favorites = [];
-let lang = 'en'; // 'en', 'et', 'ru'
 
-// LANGUAGE MESSAGES
-const messages = {
-  en: {
-    loginSuccess: 'Login successful!',
-    registerSuccess: 'Registered & logged in!',
-    addCart: 'Added to cart!',
-    stockCheck: qty => `Stock: ${qty}`,
-    noStock: 'No stock',
-    bugReport: 'Bug reported!',
-    error: 'Error occurred'
-  },
-  et: {
-    loginSuccess: 'Sisselogimine edukas!',
-    registerSuccess: 'Registreerimine ja sisselogimine edukas!',
-    addCart: 'Lisatud ostukorvi!',
-    stockCheck: qty => `Laoseis: ${qty}`,
-    noStock: 'Laos puudub',
-    bugReport: 'Viga teatatud!',
-    error: 'Tekkis viga'
-  },
-  ru: {
-    loginSuccess: 'Вход выполнен успешно!',
-    registerSuccess: 'Регистрация и вход выполнены!',
-    addCart: 'Добавлено в корзину!',
-    stockCheck: qty => `На складе: ${qty}`,
-    noStock: 'Нет на складе',
-    bugReport: 'Ошибка отправлена!',
-    error: 'Произошла ошибка'
-  }
-};
-
-// NOTIFICATIONS
-function showNotification(msg, color = '#ff7eb9') {
-  const notif = document.createElement('div');
-  notif.className = 'notification';
-  notif.style.background = color;
-  notif.textContent = msg;
-  document.body.appendChild(notif);
-  notif.style.display = 'block';
-  setTimeout(() => { notif.style.display='none'; notif.remove(); }, 3000);
+// Show notification
+function showNotification(msg, duration=2000) {
+    notification.textContent = msg;
+    notification.style.display = "block";
+    setTimeout(()=> notification.style.display="none", duration);
 }
 
-// FETCH WITH AUTH
-async function fetchAuth(url, options = {}) {
-  options.headers = options.headers || {};
-  if (token) options.headers['Authorization'] = `Bearer ${token}`;
-  return fetch(url, options);
-}
-
-// LOGIN / REGISTER
-async function login(email, password) {
-  try {
-    const res = await fetch(`${API_BASE}/login`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const data = await res.json();
-    if(data.ok) { token = document.cookie.split('token=')[1]; userId = data.userId; showNotification(messages[lang].loginSuccess,'#47d147'); loadProducts(); }
-    else showNotification(data.error || messages[lang].error,'#ff4d6d');
-  } catch(e) { showNotification(messages[lang].error,'#ff4d6d'); }
-}
-
-async function register(email, password) {
-  try {
-    const res = await fetch(`${API_BASE}/register`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const data = await res.json();
-    if(data.ok) { token = document.cookie.split('token=')[1]; userId = data.userId; showNotification(messages[lang].registerSuccess,'#47d147'); loadProducts(); }
-    else showNotification(data.error || messages[lang].error,'#ff4d6d');
-  } catch(e) { showNotification(messages[lang].error,'#ff4d6d'); }
-}
-
-// LOAD PRODUCTS
-async function loadProducts() {
-  try {
-    const res = await fetchAuth(`${API_BASE}/products?userId=${userId}`);
-    products = await res.json();
-    favorites = products.filter(p => p.favorited).map(p => p.id);
-    renderTopScroller();
-    renderProducts();
+// Toggle cart
+cartIcon.addEventListener("click", ()=> {
+    cartDropdown.style.display = cartDropdown.style.display === "block" ? "none" : "block";
     renderCart();
-  } catch(e) { showNotification(messages[lang].error,'#ff4d6d'); }
-}
-
-// RENDER PRODUCTS
-function renderProducts() {
-  const container = document.querySelector('.products-container');
-  container.innerHTML = '';
-  products.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    card.innerHTML = `
-      <div class="product-img">${p.image || 'Add Image'}</div>
-      <h3>${p.name}</h3>
-      <p>Price: $${p.price}</p>
-      <p class="stock-text">${p.stock>0?p.stock+' in stock':messages[lang].noStock}</p>
-      <div class="quantity-container">
-        <button onclick="changeQty('${p.id}',-1)">-</button>
-        <input type="number" value="1" min="1" max="${p.stock}" id="qty-${p.id}">
-        <button onclick="changeQty('${p.id}',1)">+</button>
-      </div>
-      <div class="product-buttons">
-        <button class="buy-btn" onclick="addToCart('${p.id}')">🛒 Add</button>
-        <button class="check-btn" onclick="checkStock('${p.id}')">Check</button>
-        <button class="check-btn" onclick="toggleFavorite('${p.id}')">${favorites.includes(p.id)?'💚':'🤍'}</button>
-      </div>
-    `;
-    card.addEventListener('click', ()=>showProductPage(p));
-    container.appendChild(card);
-  });
-}
-
-// PRODUCT PAGE
-function showProductPage(p) {
-  const modal = document.createElement('div');
-  modal.className = 'product-modal';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
-      <h2>${p.name}</h2>
-      <div class="product-img">${p.image || 'Add Image'}</div>
-      <p>${p.description || 'No description available.'}</p>
-      <p>Price: $${p.price}</p>
-      <p class="stock-text">${p.stock>0?p.stock+' in stock':messages[lang].noStock}</p>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-// CHANGE QUANTITY
-function changeQty(id, delta) {
-  const input = document.getElementById(`qty-${id}`);
-  let val = parseInt(input.value);
-  val += delta;
-  if(val<1) val=1;
-  const max = parseInt(input.max)||9999;
-  if(val>max) val=max;
-  input.value = val;
-}
-
-// ADD TO CART
-async function addToCart(id) {
-  const qty = parseInt(document.getElementById(`qty-${id}`).value);
-  try {
-    const res = await fetchAuth(`${API_BASE}/cart/add`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({productId:id, quantity:qty})
-    });
-    const data = await res.json();
-    if(data.ok) { cart=data.cart; showNotification(messages[lang].addCart,'#47d147'); renderCart(); }
-    else showNotification(data.error||messages[lang].error,'#ff4d6d');
-  } catch(e) { showNotification(messages[lang].error,'#ff4d6d'); }
-}
-
-// RENDER CART
-function renderCart() {
-  const dropdown = document.querySelector('.cart-dropdown');
-  dropdown.innerHTML='';
-  let total=0;
-  cart.forEach(c=>{
-    const p = products.find(x=>x.id===c.productId);
-    if(!p) return;
-    const itemTotal = p.price*c.quantity;
-    total += itemTotal;
-    const div = document.createElement('div');
-    div.textContent = `${p.name} x${c.quantity} - $${itemTotal.toFixed(2)}`;
-    dropdown.appendChild(div);
-  });
-  const totalDiv = document.createElement('div');
-  totalDiv.style.fontWeight='700';
-  totalDiv.style.marginTop='0.5rem';
-  totalDiv.textContent=`Total: $${total.toFixed(2)}`;
-  dropdown.appendChild(totalDiv);
-}
-
-// CART TOGGLE
-document.getElementById('cart-icon').addEventListener('click', ()=>{
-  const dropdown = document.querySelector('.cart-dropdown');
-  dropdown.style.display = dropdown.style.display==='block'?'none':'block';
 });
 
-// CHECK STOCK
-async function checkStock(id){
-  try {
-    const res = await fetchAuth(`${API_BASE}/check`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({productId:id})
-    });
-    const data = await res.json();
-    if(data.ok){ showNotification(messages[lang].stockCheck(data.product.stock),'#ffb347'); loadProducts(); }
-    else showNotification(data.error||messages[lang].error,'#ff4d6d');
-  } catch(e) { showNotification(messages[lang].error,'#ff4d6d'); }
-}
-
-// FAVORITE TOGGLE
-async function toggleFavorite(id){
-  try {
-    const res = await fetchAuth(`${API_BASE}/favorite`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({productId:id})
-    });
-    const data = await res.json();
-    if(data.ok){
-      if(favorites.includes(id)) favorites=favorites.filter(x=>x!==id);
-      else favorites.push(id);
-      renderProducts();
-      renderTopScroller();
+// Fetch products
+async function loadProducts() {
+    try {
+        const res = await fetch("/products");
+        products = await res.json();
+        renderTopFaved();
+        renderProducts();
+    } catch(err) {
+        console.error(err);
+        showNotification("Failed to load products");
     }
-  } catch(e){ showNotification(messages[lang].error,'#ff4d6d'); }
 }
 
-// BUG REPORT
-async function reportBug(message){
-  try {
-    const res = await fetchAuth(`${API_BASE}/bug`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message})
+// Render main products
+function renderProducts() {
+    productsContainer.innerHTML = "";
+    products.forEach(p=>{
+        const card = document.createElement("div");
+        card.className = "product-card";
+
+        card.innerHTML = `
+            <div class="product-image" style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;background:#eee;border-radius:12px;margin-bottom:0.5rem;">
+                ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : "Add Image"}
+            </div>
+            <h3>${p.name}</h3>
+            <p>$${p.price.toFixed(2)}</p>
+            <div class="quantity-container">
+                <button class="qty-btn" data-id="${p.id}" data-type="minus">-</button>
+                <input type="text" class="quantity-input" value="1" data-id="${p.id}">
+                <button class="qty-btn" data-id="${p.id}" data-type="plus">+</button>
+            </div>
+            <div class="product-buttons">
+                <button class="buy-btn" data-id="${p.id}">Add to Cart</button>
+                <button class="check-btn" data-id="${p.id}">Fav ❤️</button>
+            </div>
+            <div class="stock-text">${p.stock > 0 ? `Stock: ${p.stock}` : "No stock"}</div>
+        `;
+
+        // Product click to details
+        card.addEventListener("click", (e)=>{
+            if(e.target.tagName !== "BUTTON" && e.target.tagName !== "INPUT") {
+                showNotification(`Clicked ${p.name}`);
+            }
+        });
+
+        productsContainer.appendChild(card);
     });
-    const data = await res.json();
-    if(data.ok) showNotification(messages[lang].bugReport,'#47d147');
-  } catch(e){ showNotification(messages[lang].error,'#ff4d6d'); }
+
+    attachProductEvents();
 }
 
-// TOP SCROLLER
-function renderTopScroller(){
-  const container = document.querySelector('.top-scroller');
-  container.innerHTML='';
-  const topFaves = products.filter(p=>favorites.includes(p.id));
-  const topBought = products.sort((a,b)=>b.soldCount-a.soldCount).slice(0,10);
-  [...topFaves,...topBought].forEach(p=>{
-    const div=document.createElement('div');
-    div.className='product-card';
-    div.innerHTML=`<h4>${p.name}</h4>`;
-    container.appendChild(div);
-  });
+// Render top faved horizontally
+function renderTopFaved() {
+    topFavedContainer.innerHTML = "";
+    const topFaved = [...products].sort((a,b)=>b.favedCount-b.soldCount).slice(0,10);
+    topFaved.forEach(p=>{
+        const div = document.createElement("div");
+        div.className = "product-card";
+        div.style.minWidth = "200px";
+        div.innerHTML = `
+            <div style="width:100%;height:100px;display:flex;align-items:center;justify-content:center;background:#eee;border-radius:12px;margin-bottom:0.5rem;">
+                ${p.image ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : "Add Image"}
+            </div>
+            <h3>${p.name}</h3>
+            <p>$${p.price.toFixed(2)}</p>
+        `;
+        topFavedContainer.appendChild(div);
+    });
 }
 
-// INITIAL LOAD
-window.addEventListener('DOMContentLoaded', ()=>{
-  if(document.cookie.includes('token=')){
-    token=document.cookie.split('token=')[1];
-    loadProducts();
-  }
-});
+// Cart render
+function renderCart() {
+    cartDropdown.innerHTML = "";
+    if(cart.length===0) cartDropdown.textContent = "Cart empty";
+    cart.forEach(item=>{
+        const p = products.find(prod=>prod.id===item.id);
+        const div = document.createElement("div");
+        div.style.display="flex";
+        div.style.justifyContent="space-between";
+        div.style.marginBottom="0.5rem";
+        div.innerHTML = `${p.name} x${item.qty} - $${(p.price*item.qty).toFixed(2)}`;
+        cartDropdown.appendChild(div);
+    });
+}
+
+// Attach events to product buttons
+function attachProductEvents() {
+    document.querySelectorAll(".buy-btn").forEach(btn=>{
+        btn.addEventListener("click",(e)=>{
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            const input = document.querySelector(`.quantity-input[data-id='${id}']`);
+            const qty = parseInt(input.value);
+            addToCart(id, qty);
+        });
+    });
+
+    document.querySelectorAll(".check-btn").forEach(btn=>{
+        btn.addEventListener("click",(e)=>{
+            e.stopPropagation();
+            const id = parseInt(btn.dataset.id);
+            toggleFavorite(id);
+        });
+    });
+
+    document.querySelectorAll(".qty-btn").forEach(btn=>{
+        btn.addEventListener("click",(e)=>{
+            const id = parseInt(btn.dataset.id);
+            const input = document.querySelector(`.quantity-input[data-id='${id}']`);
+            if(btn.dataset.type==="plus") input.value = parseInt(input.value)+1;
+            else input.value = Math.max(1, parseInt(input.value)-1);
+        });
+    });
+}
+
+// Cart logic
+function addToCart(id, qty) {
+    const existing = cart.find(c=>c.id===id);
+    if(existing) existing.qty += qty;
+    else cart.push({id, qty});
+    showNotification("Added to cart");
+    renderCart();
+}
+
+// Favorite logic
+function toggleFavorite(id) {
+    const existing = favorites.find(f=>f===id);
+    if(existing) {
+        favorites = favorites.filter(f=>f!==id);
+        showNotification("Removed from favorites");
+    } else {
+        favorites.push(id);
+        showNotification("Added to favorites");
+    }
+}
+
+// Prevent double-tap zoom
+let lastTouch = 0;
+document.addEventListener("touchend", function(event) {
+    const now = Date.now();
+    if(now-lastTouch<=300) event.preventDefault();
+    lastTouch = now;
+}, false);
+
+loadProducts();
